@@ -1,0 +1,106 @@
+import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
+import { getDb, schema } from "@/db";
+import { NEEDLE_GROUPS, type Lang, type NeedleGroup } from "@/config";
+
+export type Product = typeof schema.products.$inferSelect;
+export type ProductWithImages = Product & { images: { id: number; url: string }[] };
+
+export const effectivePrice = (p: Pick<Product, "price" | "salePrice">) =>
+  p.salePrice != null && p.salePrice < p.price ? p.salePrice : p.price;
+export const isOnSale = (p: Pick<Product, "price" | "salePrice">) => p.salePrice != null && p.salePrice < p.price;
+
+export const productName = (p: Pick<Product, "nameMn" | "nameEn">, lang: Lang) => (lang === "mn" ? p.nameMn : p.nameEn);
+export const colorName = (p: Pick<Product, "colorNameMn" | "colorNameEn">, lang: Lang) =>
+  lang === "mn" ? p.colorNameMn : p.colorNameEn;
+
+export function needleLabel(p: Pick<Product, "needleMinMm" | "needleMaxMm">) {
+  const { needleMinMm: a, needleMaxMm: b } = p;
+  if (a == null && b == null) return "";
+  if (a != null && b != null && a !== b) return `${a}–${b} mm`;
+  return `${a ?? b} mm`;
+}
+
+// Is the hex colour dark? (Used to pick strand colour on the drawn placeholder.)
+export function isDark(hex: string) {
+  const h = hex.replace("#", "");
+  const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 120;
+}
+
+export type CatalogFilter = {
+  category?: "yarn" | "supplies";
+  brand?: string;
+  material?: string;
+  needle?: NeedleGroup;
+  sort?: "new" | "low" | "high";
+};
+
+async function attachImages(rows: Product[]): Promise<ProductWithImages[]> {
+  if (rows.length === 0) return [];
+  const db = await getDb();
+  const imgs = await db
+    .select()
+    .from(schema.productImages)
+    .where(inArray(schema.productImages.productId, rows.map((r) => r.id)))
+    .orderBy(asc(schema.productImages.sort), asc(schema.productImages.id));
+  return rows.map((r) => ({ ...r, images: imgs.filter((i) => i.productId === r.id).map((i) => ({ id: i.id, url: i.url })) }));
+}
+
+export async function listProducts(f: CatalogFilter): Promise<ProductWithImages[]> {
+  const db = await getDb();
+  const p = schema.products;
+  const where: SQL[] = [eq(p.isActive, true)];
+  if (f.category) where.push(eq(p.category, f.category));
+  if (f.brand) where.push(eq(p.brand, f.brand));
+  if (f.material) where.push(eq(p.material, f.material));
+  if (f.needle && NEEDLE_GROUPS[f.needle]) {
+    const g = NEEDLE_GROUPS[f.needle];
+    where.push(lte(sql`coalesce(${p.needleMinMm}, ${p.needleMaxMm})`, g.max));
+    where.push(gte(sql`coalesce(${p.needleMaxMm}, ${p.needleMinMm})`, g.min));
+  }
+  const price = sql`coalesce(least(${p.salePrice}, ${p.price}), ${p.price})`;
+  const order =
+    f.sort === "low" ? [asc(price), asc(p.id)] : f.sort === "high" ? [desc(price), asc(p.id)] : [desc(p.isNew), desc(p.createdAt), desc(p.id)];
+  const rows = await db.select().from(p).where(and(...where)).orderBy(...order);
+  return attachImages(rows);
+}
+
+export async function listBrands(category: "yarn" | "supplies" = "yarn"): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db
+    .selectDistinct({ brand: schema.products.brand })
+    .from(schema.products)
+    .where(and(eq(schema.products.isActive, true), eq(schema.products.category, category)))
+    .orderBy(asc(schema.products.brand));
+  return rows.map((r) => r.brand).filter(Boolean);
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductWithImages | null> {
+  const db = await getDb();
+  const [row] = await db.select().from(schema.products).where(eq(schema.products.slug, slug));
+  if (!row) return null;
+  return (await attachImages([row]))[0];
+}
+
+export async function getProductById(id: number): Promise<ProductWithImages | null> {
+  const db = await getDb();
+  const [row] = await db.select().from(schema.products).where(eq(schema.products.id, id));
+  if (!row) return null;
+  return (await attachImages([row]))[0];
+}
+
+export async function getProductsByIds(ids: number[]): Promise<ProductWithImages[]> {
+  if (ids.length === 0) return [];
+  const db = await getDb();
+  return attachImages(await db.select().from(schema.products).where(inArray(schema.products.id, ids)));
+}
+
+export function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "item";
+}

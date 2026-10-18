@@ -1,0 +1,42 @@
+{
+  "name": "yarn-shop",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "setup": "npm run db:migrate && npm run db:seed",
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "tsx scripts/deploy.ts && next build"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "@fontsource/manrope": "^5.3.0",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.12",
+    "next": "^16.4.2",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "drizzle-kit": "^0.31.11",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}
