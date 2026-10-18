@@ -1,9 +1,11 @@
 // Applies database migrations from ./drizzle. Works for both PGlite (local) and Postgres.
 import { loadEnv } from "./env";
+import { databaseUrl } from "../src/db/url";
 loadEnv();
 
 async function main() {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
+  if (url) process.env.DATABASE_URL = url;
   if (url) {
     const { Pool } = await import("pg");
     const { drizzle } = await import("drizzle-orm/node-postgres");

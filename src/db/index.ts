@@ -1,4 +1,5 @@
 import * as schema from "./schema";
+import { databaseUrl, onHostingPlatform } from "./url";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 
 // One database handle for the whole app.
@@ -9,7 +10,10 @@ export type DB = PgDatabase<PgQueryResultHKT, typeof schema>;
 const g = globalThis as unknown as { __db?: Promise<DB> };
 
 async function create(): Promise<DB> {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
+  if (!url && onHostingPlatform()) {
+    throw new Error("No database connected: set DATABASE_URL (connect a Neon/Postgres database to the project).");
+  }
   if (url) {
     const { Pool } = await import("pg");
     const { drizzle } = await import("drizzle-orm/node-postgres");
@@ -23,7 +27,12 @@ async function create(): Promise<DB> {
 }
 
 export function getDb(): Promise<DB> {
-  if (!g.__db) g.__db = create();
+  if (!g.__db) {
+    g.__db = create().catch((e) => {
+      g.__db = undefined; // retry on the next request instead of failing forever
+      throw e;
+    });
+  }
   return g.__db;
 }
 
