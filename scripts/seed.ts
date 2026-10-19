@@ -8,6 +8,8 @@ type Seed = {
   colorHex: string; colorFamily: string; material: string | null; needleMinMm: number | null; needleMaxMm: number | null;
   weightG: number | null; lengthM: number | null; price: number; salePrice?: number; stock: number; isNew?: boolean;
   category?: string; descriptionMn: string; descriptionEn: string;
+  weightTolG?: number; lengthTolM?: number; compositionMn?: string; compositionEn?: string;
+  gaugeStitches?: number; gaugeRows?: number; gaugeNeedleMm?: number; manufacturer?: string; originMn?: string; originEn?: string;
 };
 
 const merino = { mn: "Зөөлөн, загатнадаггүй мерино ноос. Ороолт, малгай, цамцанд тохиромжтой.", en: "Soft, non-itchy merino wool. Good for scarves, hats and sweaters." };
@@ -34,17 +36,53 @@ const items: Seed[] = [
   { slug: "stitch-markers", category: "supplies", brand: "Utas Basics", nameMn: "Нүдний тэмдэглэгээ (20 ш)", nameEn: "Stitch markers (20 pcs)", colorNameMn: "", colorNameEn: "", colorHex: "#D97757", colorFamily: "multi", material: null, needleMinMm: null, needleMaxMm: null, weightG: null, lengthM: null, price: 4500, stock: 25, descriptionMn: "Өнгө өнгийн хуванцар тэмдэглэгээ.", descriptionEn: "Colourful plastic stitch markers." },
 ];
 
+// ---- Version 2: Amano "Andes" (real product specs; price and stock are placeholders) ----
+const andesText = {
+  mn: "Супер файн альпака, Патагонийн ноосны хольцтой твид ээрмэл. Альпака нь зөөлөн бөгөөд дулаан, Патагонийн ноос нь бат бөх боловч загатнадаггүй.\n\nДотроо агаар ихтэй ээрсэн тул хөнгөн, дулаан. Твидийн өнгө өнгийн толбо нь нэхмэлийг баялаг харагдуулна.\n\nНүд жигд гардаг тул намар, өвлийн цамц, малгай, ороолт зэрэг олон бүтээлд тохиромжтой.",
+  en: "A tweed yarn of superfine alpaca and Patagonian wool. The alpaca brings softness and warmth; the wool adds strength without itch.\n\nSpun loosely to hold plenty of air, so it knits up light and warm. Flecks of colour give the fabric depth.\n\nStitches come out even, which makes it a good all-rounder for autumn and winter sweaters, hats and scarves.",
+};
+const andes = {
+  brand: "Amano", nameMn: "Andes", nameEn: "Andes", material: "alpaca", needleMinMm: 3.75, needleMaxMm: 4,
+  weightG: 50, weightTolG: 5, lengthM: 150, lengthTolM: 15,
+  compositionMn: "Альпака 60%, Патагонийн ноос 40%", compositionEn: "Alpaca 60%, Patagonian wool 40%",
+  gaugeStitches: 21, gaugeRows: 28, gaugeNeedleMm: 4, manufacturer: "Amano", originMn: "Перу", originEn: "Peru",
+  price: 16900, isNew: true, descriptionMn: andesText.mn, descriptionEn: andesText.en,
+};
+const itemsV2: Seed[] = [
+  { ...andes, slug: "andes-charcoal-tweed", colorNameMn: "Бараан саарал твид", colorNameEn: "Charcoal tweed", colorHex: "#66625F", colorFamily: "neutral", stock: 20 },
+  { ...andes, slug: "andes-teal-tweed", colorNameMn: "Номин твид", colorNameEn: "Teal tweed", colorHex: "#2F6B78", colorFamily: "blue", stock: 14 },
+  { ...andes, slug: "andes-rust-tweed", colorNameMn: "Хүрэн твид", colorNameEn: "Rust tweed", colorHex: "#7B4B31", colorFamily: "neutral", stock: 12 },
+  { ...andes, slug: "andes-forest-tweed", colorNameMn: "Ногоон твид", colorNameEn: "Forest tweed", colorHex: "#3D4D2B", colorFamily: "green", stock: 3 },
+  { ...andes, slug: "andes-natural", colorNameMn: "Цайвар", colorNameEn: "Natural", colorHex: "#ECE5D5", colorFamily: "neutral", stock: 16 },
+];
+
+// Each version is loaded once per database, tracked in the "meta" table.
+// Deleting a sample product in the admin will not bring it back on the next deploy.
 async function main() {
   const { getDb, schema } = await import("../src/db");
-  const { sql } = await import("drizzle-orm");
+  const { sql, eq } = await import("drizzle-orm");
   const db = await getDb();
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.products);
-  if (n > 0) {
-    console.log(`Seed skipped: ${n} products already exist.`);
-    return;
+  const [row] = await db.select().from(schema.meta).where(eq(schema.meta.key, "seed_version"));
+  // Databases seeded before versioning existed already have version 1.
+  let version = row ? Number(row.value) : n > 0 ? 1 : 0;
+  const fill = (i: Seed) => ({ ...i, category: i.category ?? "yarn", isNew: i.isNew ?? false });
+
+  if (version < 1) {
+    await db.insert(schema.products).values(items.map(fill)).onConflictDoNothing();
+    console.log(`Seed v1: ${items.length} sample products.`);
+    version = 1;
   }
-  await db.insert(schema.products).values(items.map((i) => ({ ...i, category: i.category ?? "yarn", isNew: i.isNew ?? false })));
-  console.log(`Seeded ${items.length} sample products.`);
+  if (version < 2) {
+    await db.insert(schema.products).values(itemsV2.map(fill)).onConflictDoNothing();
+    console.log(`Seed v2: ${itemsV2.length} Andes colourways.`);
+    version = 2;
+  }
+  await db
+    .insert(schema.meta)
+    .values({ key: "seed_version", value: String(version) })
+    .onConflictDoUpdate({ target: schema.meta.key, set: { value: String(version) } });
+  console.log(`Sample data at version ${version}.`);
 }
 
 main()

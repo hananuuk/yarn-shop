@@ -8,6 +8,7 @@ export type ProductValues = {
   category: string; brand: string; nameMn: string; nameEn: string; colorNameMn: string; colorNameEn: string;
   colorHex: string; colorFamily: string; material: string; needleMinMm: string; needleMaxMm: string;
   weightG: string; lengthM: string; descriptionMn: string; descriptionEn: string;
+  weightTolG: string; lengthTolM: string; compositionMn: string; compositionEn: string; gaugeStitches: string; gaugeRows: string; gaugeNeedleMm: string; hookMinMm: string; hookMaxMm: string; manufacturer: string; originMn: string; originEn: string;
   price: string; salePrice: string; stock: string; isActive: boolean; isNew: boolean;
 };
 
@@ -79,6 +80,27 @@ export function ProductForm({ values, brands, materials, families }: { values: P
             <label className="label">Weight (g)<input name="weightG" inputMode="numeric" defaultValue={values.weightG} className="field" /></label>
             <label className="label">Length (m)<input name="lengthM" inputMode="numeric" defaultValue={values.lengthM} className="field" /></label>
           </div>
+          <div className="grid gap-4 sm:grid-cols-4">
+            <label className="label">Weight ± (g)<input name="weightTolG" inputMode="numeric" defaultValue={values.weightTolG} placeholder="e.g. 5" className="field" /></label>
+            <label className="label">Length ± (m)<input name="lengthTolM" inputMode="numeric" defaultValue={values.lengthTolM} placeholder="e.g. 15" className="field" /></label>
+            <label className="label">Crochet hook from (mm)<input name="hookMinMm" inputMode="decimal" defaultValue={values.hookMinMm} className="field" /></label>
+            <label className="label">Crochet hook to (mm)<input name="hookMaxMm" inputMode="decimal" defaultValue={values.hookMaxMm} className="field" /></label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="label">Blend (MN)<input name="compositionMn" defaultValue={values.compositionMn} placeholder="Альпака 60%, Патагонийн ноос 40%" className="field" /></label>
+            <label className="label">Blend (EN)<input name="compositionEn" defaultValue={values.compositionEn} placeholder="Alpaca 60%, Patagonian wool 40%" className="field" /></label>
+          </div>
+          <fieldset className="grid gap-4 sm:grid-cols-3">
+            <legend className="mb-1.5 text-[13px] font-semibold text-[#4A4A4A]">Gauge (per 10 × 10 cm)</legend>
+            <label className="label">Stitches<input name="gaugeStitches" inputMode="numeric" defaultValue={values.gaugeStitches} placeholder="21" className="field" /></label>
+            <label className="label">Rows<input name="gaugeRows" inputMode="numeric" defaultValue={values.gaugeRows} placeholder="28" className="field" /></label>
+            <label className="label">On needle (mm)<input name="gaugeNeedleMm" inputMode="decimal" defaultValue={values.gaugeNeedleMm} placeholder="4" className="field" /></label>
+          </fieldset>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="label">Manufacturer<input name="manufacturer" defaultValue={values.manufacturer} className="field" /></label>
+            <label className="label">Origin (MN)<input name="originMn" defaultValue={values.originMn} placeholder="Перу" className="field" /></label>
+            <label className="label">Origin (EN)<input name="originEn" defaultValue={values.originEn} placeholder="Peru" className="field" /></label>
+          </div>
         </Section>
       ) : (
         <Section title="Supply details">
@@ -122,7 +144,7 @@ export function ProductForm({ values, brands, materials, families }: { values: P
             {previews.map((src) => <img key={src} src={src} alt="" className="size-20 rounded-lg object-cover" />)}
           </div>
         )}
-        <p className="text-xs text-muted">JPG, PNG or WebP. Large phone photos are shrunk automatically. Use the same background and light for every product.</p>
+        <p className="text-xs text-muted">JPG, PNG or WebP. Large phone photos are shrunk automatically. Shoot every product on the same warm beige backdrop (like the tiles), with the same light.</p>
       </Section>
 
       {state.error && <p className="rounded-xl bg-[#FBEAE7] p-4 text-sm font-semibold text-accent" role="alert">{state.error}</p>}

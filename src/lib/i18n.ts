@@ -17,7 +17,7 @@ const mn = {
     sale: "Хямдрал",
     soldOut: "Дууссан",
   },
-  materials: { wool: "Ноос", cotton: "Хөвөн", blend: "Холимог", acrylic: "Акрил", other: "Бусад" } as Record<string, string>,
+  materials: { wool: "Ноос", alpaca: "Альпака", cashmere: "Ноолуур", yak: "Сарлагийн ноос", camel: "Тэмээний ноос", cotton: "Хөвөн", blend: "Холимог", acrylic: "Акрил", other: "Бусад" } as Record<string, string>,
   product: {
     brand: "Брэнд", material: "Материал", needle: "Зүүний зузаан", weight: "Жин", length: "Урт", colour: "Өнгө",
     qty: "Тоо ширхэг", add: "Сагсанд нэмэх", added: "Сагсанд нэмэгдлээ", viewBasket: "Сагс харах",
@@ -28,6 +28,10 @@ const mn = {
     rating: "Үнэлгээ", reviewPh: "Энэ ээрмэлийн талаар бусдад хэлэх зүйл…", submitReview: "Илгээх",
     loginToReview: "Сэтгэгдэл үлдээхийн тулд нэвтэрнэ үү.", shopReply: "Дэлгүүрийн хариу", back: "Бүх бүтээгдэхүүн",
     reviewThanks: "Баярлалаа! Таны сэтгэгдэл нийтлэгдлээ.",
+    about: "Ээрмэлийн мэдээлэл", blend: "Найрлага", needles: "Зүүний зузаан", hook: "Дэгээний зузаан",
+    gauge: "Нягтрал", manufacturer: "Үйлдвэрлэгч", origin: "Гарал үүсэл",
+    gaugeText: (s: number, r: number, mm: string) => `${s} нүд × ${r} мөр, 10 × 10 см${mm ? `, ${mm} зүү` : ""}`,
+    g: "г", m: "м", colours: (n: number) => `${n} өнгө`,
   },
   basket: {
     title: "Сагс", empty: "Таны сагс хоосон байна.", keepShopping: "Дэлгүүр үзэх", remove: "Хасах",
@@ -85,7 +89,7 @@ const en: Dict = {
     sale: "Sale",
     soldOut: "Sold out",
   },
-  materials: { wool: "Wool", cotton: "Cotton", blend: "Blend", acrylic: "Acrylic", other: "Other" },
+  materials: { wool: "Wool", alpaca: "Alpaca", cashmere: "Cashmere", yak: "Yak", camel: "Camel", cotton: "Cotton", blend: "Blend", acrylic: "Acrylic", other: "Other" },
   product: {
     brand: "Brand", material: "Material", needle: "Needle size", weight: "Weight", length: "Length", colour: "Colour",
     qty: "Quantity", add: "Add to basket", added: "Added to basket", viewBasket: "View basket",
@@ -96,6 +100,10 @@ const en: Dict = {
     rating: "Rating", reviewPh: "What should other knitters know about this yarn?", submitReview: "Post review",
     loginToReview: "Log in to write a review.", shopReply: "Reply from the shop", back: "All products",
     reviewThanks: "Thanks! Your review is posted.",
+    about: "About this yarn", blend: "Blend", needles: "Knitting needles", hook: "Crochet hook",
+    gauge: "Gauge", manufacturer: "Manufacturer", origin: "Origin",
+    gaugeText: (s, r, mm) => `${s} sts × ${r} rows, 10 × 10 cm${mm ? `, ${mm} needles` : ""}`,
+    g: "g", m: "m", colours: (n) => `${n} colours`,
   },
   basket: {
     title: "Basket", empty: "Your basket is empty.", keepShopping: "Browse the shop", remove: "Remove",

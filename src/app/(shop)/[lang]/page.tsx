@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { NEEDLE_GROUPS, MATERIALS, money, type Lang, type NeedleGroup } from "@/config";
+import { NEEDLE_GROUPS, money, type Lang, type NeedleGroup } from "@/config";
 import { getDict } from "@/lib/i18n";
-import { listBrands, listProducts, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
+import { listBrands, listMaterials, listProducts, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
 import { ProductImage } from "@/components/ProductImage";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { PICK_COLORS, type Pick } from "@/lib/picks";
@@ -40,11 +40,12 @@ export default async function Catalog({
   const sort = sp.sort === "low" || sp.sort === "high" ? sp.sort : "new";
 
   const brands = await listBrands(category);
+  const materials = await listMaterials(category);
   const dims = [
     { key: "brand", name: t.catalog.dims.brand, options: brands.map((b) => ({ value: b, label: b })) },
     ...(category === "yarn"
       ? [
-          { key: "material", name: t.catalog.dims.material, options: MATERIALS.filter((m) => m !== "other").map((m) => ({ value: m, label: t.materials[m] })) },
+          { key: "material", name: t.catalog.dims.material, options: materials.map((m) => ({ value: m, label: t.materials[m] })) },
           { key: "needle", name: t.catalog.dims.needle, options: (Object.keys(NEEDLE_GROUPS) as NeedleGroup[]).map((k) => ({ value: k, label: NEEDLE_GROUPS[k].label[lang] })) },
         ]
       : []),
@@ -95,11 +96,11 @@ export default async function Catalog({
             const sale = isOnSale(p);
             const soldOut = p.stock <= 0;
             const tag = soldOut ? t.catalog.soldOut : sale ? t.catalog.sale : p.isNew ? t.catalog.isNew : null;
-            const meta = [p.brand, p.material ? t.materials[p.material] : null, needleLabel(p)].filter(Boolean).join(" · ");
+            const meta = [p.brand, p.material ? t.materials[p.material] : null, needleLabel(p, lang)].filter(Boolean).join(" · ");
             return (
               <li key={p.id}>
                 <Link href={`/${lang}/p/${p.slug}`} className="group flex flex-col gap-3.5">
-                  <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl bg-tile">
+                  <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl bg-tile">
                     {tag && (
                       <span className={`absolute left-2.5 top-2.5 md:left-3.5 md:top-3.5 z-10 rounded-full bg-white px-2.5 py-1 text-xs font-bold ${sale && !soldOut ? "text-accent" : "text-ink"}`}>{tag}</span>
                     )}

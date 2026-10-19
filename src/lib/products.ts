@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db";
-import { NEEDLE_GROUPS, type Lang, type NeedleGroup } from "@/config";
+import { MATERIALS, NEEDLE_GROUPS, type Lang, type NeedleGroup } from "@/config";
 
 export type Product = typeof schema.products.$inferSelect;
 export type ProductWithImages = Product & { images: { id: number; url: string }[] };
@@ -13,11 +13,16 @@ export const productName = (p: Pick<Product, "nameMn" | "nameEn">, lang: Lang) =
 export const colorName = (p: Pick<Product, "colorNameMn" | "colorNameEn">, lang: Lang) =>
   lang === "mn" ? p.colorNameMn : p.colorNameEn;
 
-export function needleLabel(p: Pick<Product, "needleMinMm" | "needleMaxMm">) {
-  const { needleMinMm: a, needleMaxMm: b } = p;
+// "3.75–4 мм" / "3.75–4 mm"
+export function mmRange(a: number | null, b: number | null, lang: Lang = "en") {
+  const unit = lang === "mn" ? "мм" : "mm";
   if (a == null && b == null) return "";
-  if (a != null && b != null && a !== b) return `${a}–${b} mm`;
-  return `${a ?? b} mm`;
+  if (a != null && b != null && a !== b) return `${a}–${b} ${unit}`;
+  return `${a ?? b} ${unit}`;
+}
+
+export function needleLabel(p: Pick<Product, "needleMinMm" | "needleMaxMm">, lang: Lang = "en") {
+  return mmRange(p.needleMinMm, p.needleMaxMm, lang);
 }
 
 // Is the hex colour dark? (Used to pick strand colour on the drawn placeholder.)
@@ -74,6 +79,35 @@ export async function listBrands(category: "yarn" | "supplies" = "yarn"): Promis
     .where(and(eq(schema.products.isActive, true), eq(schema.products.category, category)))
     .orderBy(asc(schema.products.brand));
   return rows.map((r) => r.brand).filter(Boolean);
+}
+
+// Materials that at least one visible product uses, in the shop's preferred order.
+export async function listMaterials(category: "yarn" | "supplies" = "yarn"): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db
+    .selectDistinct({ m: schema.products.material })
+    .from(schema.products)
+    .where(and(eq(schema.products.isActive, true), eq(schema.products.category, category)));
+  const present = new Set(rows.map((r) => r.m).filter(Boolean) as string[]);
+  return MATERIALS.filter((m) => present.has(m));
+}
+
+// Other colours of the same yarn: same brand + English name + category.
+export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "category">) {
+  const db = await getDb();
+  return db
+    .select({
+      id: schema.products.id, slug: schema.products.slug, colorHex: schema.products.colorHex,
+      colorNameMn: schema.products.colorNameMn, colorNameEn: schema.products.colorNameEn, stock: schema.products.stock,
+    })
+    .from(schema.products)
+    .where(and(
+      eq(schema.products.isActive, true),
+      eq(schema.products.brand, p.brand),
+      eq(schema.products.nameEn, p.nameEn),
+      eq(schema.products.category, p.category),
+    ))
+    .orderBy(asc(schema.products.id));
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductWithImages | null> {

@@ -48,6 +48,18 @@ export const products = pgTable("products", {
   needleMaxMm: real("needle_max_mm"),
   weightG: integer("weight_g"),
   lengthM: integer("length_m"),
+  weightTolG: integer("weight_tol_g"), // ± tolerance printed on the label
+  lengthTolM: integer("length_tol_m"),
+  compositionMn: text("composition_mn").notNull().default(""), // e.g. "Альпака 60%, Патагонийн ноос 40%"
+  compositionEn: text("composition_en").notNull().default(""),
+  gaugeStitches: integer("gauge_stitches"), // per 10 x 10 cm
+  gaugeRows: integer("gauge_rows"),
+  gaugeNeedleMm: real("gauge_needle_mm"),
+  hookMinMm: real("hook_min_mm"), // crochet hook
+  hookMaxMm: real("hook_max_mm"),
+  manufacturer: text("manufacturer").notNull().default(""),
+  originMn: text("origin_mn").notNull().default(""),
+  originEn: text("origin_en").notNull().default(""),
   descriptionMn: text("description_mn").notNull().default(""),
   descriptionEn: text("description_en").notNull().default(""),
   price: integer("price").notNull(), // tugrik
@@ -184,4 +196,11 @@ export const uploads = pgTable("uploads", {
   mime: text("mime").notNull(),
   data: bytea("data").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ---------- Settings ----------
+// Small key/value store (e.g. which sample-data version has been loaded).
+export const meta = pgTable("meta", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
 });

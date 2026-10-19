@@ -18,7 +18,7 @@ export default async function NewProduct() {
         values={{
           category: "yarn", brand: "", nameMn: "", nameEn: "", colorNameMn: "", colorNameEn: "", colorHex: "#D9CBB0",
           colorFamily: "neutral", material: "wool", needleMinMm: "", needleMaxMm: "", weightG: "100", lengthM: "",
-          descriptionMn: "", descriptionEn: "", price: "", salePrice: "", stock: "0", isActive: true, isNew: true,
+          descriptionMn: "", descriptionEn: "", weightTolG: "", lengthTolM: "", compositionMn: "", compositionEn: "", gaugeStitches: "", gaugeRows: "", gaugeNeedleMm: "", hookMinMm: "", hookMaxMm: "", manufacturer: "", originMn: "", originEn: "", price: "", salePrice: "", stock: "0", isActive: true, isNew: true,
         }}
       />
     </div>

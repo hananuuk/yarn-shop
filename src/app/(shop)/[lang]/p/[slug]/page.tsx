@@ -7,7 +7,7 @@ import { money, type Lang } from "@/config";
 import { getDict } from "@/lib/i18n";
 import { getAnonId, getCurrentUser } from "@/lib/auth";
 import { track } from "@/lib/events";
-import { getProductBySlug, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
+import { getProductBySlug, listColourways, productName, colorName, needleLabel, mmRange, isOnSale, effectivePrice } from "@/lib/products";
 import { ProductImage } from "@/components/ProductImage";
 import { AddToCart } from "@/components/AddToCart";
 import { toggleSaveAction, reviewAction } from "../../actions";
@@ -46,14 +46,24 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const color = colorName(p, lang);
   const sale = isOnSale(p);
   const description = lang === "mn" ? p.descriptionMn : p.descriptionEn;
+  const tp = t.product;
+  const tol = (v: number | null, unit: string) => (v ? ` ± ${v} ${unit}` : "");
+  const composition = (lang === "mn" ? p.compositionMn : p.compositionEn) || (p.material ? t.materials[p.material] : "");
+  const origin = lang === "mn" ? p.originMn : p.originEn;
   const facts: [string, string][] = [
-    [t.product.brand, p.brand],
-    [t.product.colour, color],
-    [t.product.material, p.material ? t.materials[p.material] : ""],
-    [t.product.needle, needleLabel(p)],
-    [t.product.weight, p.weightG ? `${p.weightG} g` : ""],
-    [t.product.length, p.lengthM ? `${p.lengthM} m` : ""],
+    [tp.brand, p.brand],
+    [tp.colour, color],
+    [tp.blend, composition],
+    [tp.weight, p.weightG ? `${p.weightG} ${tp.g}${tol(p.weightTolG, tp.g)}` : ""],
+    [tp.length, p.lengthM ? `${p.lengthM} ${tp.m}${tol(p.lengthTolM, tp.m)}` : ""],
+    [p.category === "yarn" ? tp.needles : tp.needle, needleLabel(p, lang)],
+    [tp.hook, mmRange(p.hookMinMm, p.hookMaxMm, lang)],
+    [tp.gauge, p.gaugeStitches && p.gaugeRows ? tp.gaugeText(p.gaugeStitches, p.gaugeRows, mmRange(p.gaugeNeedleMm, null, lang)) : ""],
+    [tp.manufacturer, p.manufacturer],
+    [tp.origin, origin],
   ].filter(([, v]) => v) as [string, string][];
+  const colourways = await listColourways(p);
+  const paragraphs = description.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
   const back = `/${lang}/p/${p.slug}`;
 
   return (
@@ -62,7 +72,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       <div className="mt-4 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-16">
         <div className="flex flex-col gap-4">
-          <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl bg-tile">
+          <div className="flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl bg-tile">
             <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} />
           </div>
           {p.images.length > 1 && (
@@ -95,6 +105,32 @@ export default async function ProductPage({ params, searchParams }: Props) {
             <span className={sale ? "text-accent" : ""}>{money(effectivePrice(p))}</span>
           </div>
 
+          {colourways.length > 1 && (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm"><span className="text-muted">{tp.colour}:</span> <strong>{color}</strong> <span className="text-muted">· {tp.colours(colourways.length)}</span></p>
+              <ul className="flex flex-wrap gap-2.5">
+                {colourways.map((c) => {
+                  const cName = lang === "mn" ? c.colorNameMn : c.colorNameEn;
+                  const current = c.id === p.id;
+                  return (
+                    <li key={c.id}>
+                      <Link
+                        href={`/${lang}/p/${c.slug}`}
+                        aria-label={cName}
+                        aria-current={current ? "true" : undefined}
+                        title={cName}
+                        scroll={false}
+                        className={`flex size-11 items-center justify-center rounded-full ${current ? "ring-2 ring-ink ring-offset-2" : "hover:ring-2 hover:ring-line hover:ring-offset-2"}`}
+                      >
+                        <span className={`size-9 rounded-full border border-black/10 ${c.stock <= 0 ? "opacity-40" : ""}`} style={{ background: c.colorHex }} />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
           <p className={`text-sm font-semibold ${p.stock > 0 ? (p.stock <= 5 ? "text-accent" : "text-ok") : "text-muted"}`}>
             {p.stock > 0 ? t.product.inStock(p.stock) : t.product.soldOut}
           </p>
@@ -115,17 +151,24 @@ export default async function ProductPage({ params, searchParams }: Props) {
             </button>
           </form>
 
-          {description && <p className="text-[15px] leading-relaxed text-[#3E3E3E]">{description}</p>}
+          {paragraphs.length > 0 && (
+            <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-[#3E3E3E]">
+              {paragraphs.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)}
+            </div>
+          )}
 
           {facts.length > 0 && (
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-5 text-sm">
-              {facts.map(([k, v]) => (
-                <div key={k} className="flex flex-col gap-0.5">
-                  <dt className="text-muted">{k}</dt>
-                  <dd className="font-semibold">{v}</dd>
-                </div>
-              ))}
-            </dl>
+            <section aria-labelledby="about-yarn" className="rounded-2xl bg-cream p-6">
+              <h2 id="about-yarn" className="border-b-2 border-ink pb-3 text-lg font-bold tracking-tight">{p.category === "yarn" ? tp.about : name}</h2>
+              <dl className="divide-y divide-dashed divide-[#D9D1C3] text-[15px]">
+                {facts.map(([k, v]) => (
+                  <div key={k} className="flex flex-wrap justify-between gap-x-6 gap-y-0.5 py-3">
+                    <dt className="text-muted">{k}</dt>
+                    <dd className="text-right font-semibold">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
           )}
         </div>
       </div>

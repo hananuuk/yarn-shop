@@ -6,7 +6,7 @@ export const BRAND = {
     ink: "#141414",
     accent: "#C8321D", // second title part, sale prices
     accent2: "#1F4FB5", // third title part
-    tile: "#EFE8DC", // product tile background
+    tile: "#F1E6D5", // product tile background; shoot product photos on a similar beige
   },
 };
 
@@ -14,7 +14,7 @@ export const LANGS = ["mn", "en"] as const;
 export type Lang = (typeof LANGS)[number];
 export const isLang = (v: string): v is Lang => (LANGS as readonly string[]).includes(v);
 
-export const MATERIALS = ["wool", "cotton", "blend", "acrylic", "other"] as const;
+export const MATERIALS = ["wool", "alpaca", "cashmere", "yak", "camel", "cotton", "blend", "acrylic", "other"] as const;
 export type Material = (typeof MATERIALS)[number];
 
 export const COLOR_FAMILIES = ["red", "blue", "green", "yellow", "pink", "neutral", "multi"] as const;

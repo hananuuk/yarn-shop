@@ -15,6 +15,13 @@
       "when": 1792314769293,
       "tag": "0001_uploads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792413801327,
+      "tag": "0002_yarn_specs",
+      "breakpoints": true
     }
   ]
 }

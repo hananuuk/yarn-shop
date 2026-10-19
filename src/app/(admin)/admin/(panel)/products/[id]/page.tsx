@@ -80,7 +80,10 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
           id: p.id, category: p.category, brand: p.brand, nameMn: p.nameMn, nameEn: p.nameEn, colorNameMn: p.colorNameMn,
           colorNameEn: p.colorNameEn, colorHex: p.colorHex, colorFamily: p.colorFamily, material: p.material ?? "wool",
           needleMinMm: s(p.needleMinMm), needleMaxMm: s(p.needleMaxMm), weightG: s(p.weightG), lengthM: s(p.lengthM),
-          descriptionMn: p.descriptionMn, descriptionEn: p.descriptionEn, price: String(p.price), salePrice: s(p.salePrice),
+          descriptionMn: p.descriptionMn, descriptionEn: p.descriptionEn,
+          weightTolG: s(p.weightTolG), lengthTolM: s(p.lengthTolM), compositionMn: p.compositionMn, compositionEn: p.compositionEn,
+          gaugeStitches: s(p.gaugeStitches), gaugeRows: s(p.gaugeRows), gaugeNeedleMm: s(p.gaugeNeedleMm),
+          hookMinMm: s(p.hookMinMm), hookMaxMm: s(p.hookMaxMm), manufacturer: p.manufacturer, originMn: p.originMn, originEn: p.originEn, price: String(p.price), salePrice: s(p.salePrice),
           stock: String(p.stock), isActive: p.isActive, isNew: p.isNew,
         }}
       />
