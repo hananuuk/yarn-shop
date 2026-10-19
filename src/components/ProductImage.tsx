@@ -13,8 +13,10 @@ type P = {
 export function ProductImage({ category, colorHex, images, alt, className = "", index = 0 }: P) {
   const img = images[index] ?? images[0];
   if (img) {
+    // mix-blend-multiply: a white or light-grey photo background takes on the tile colour,
+    // so supplier photos shot on different backdrops still look like one shop.
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={img.url} alt={alt} className={`h-full w-full object-cover ${className}`} loading="lazy" />;
+    return <img src={img.url} alt={alt} className={`h-full w-full object-cover mix-blend-multiply ${className}`} loading="lazy" />;
   }
   return category === "supplies" ? <NeedlesArt hex={colorHex} alt={alt} className={className} /> : <YarnBall hex={colorHex} alt={alt} className={className} />;
 }
