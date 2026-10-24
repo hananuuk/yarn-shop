@@ -6,6 +6,7 @@ import { getAnonId, getCurrentUser } from "@/lib/auth";
 import { getCart } from "@/lib/cart";
 import { productName, colorName } from "@/lib/products";
 import { ProductImage } from "@/components/ProductImage";
+import { Caterpillar, PALETTE } from "@/components/Storybook";
 import { setQtyAction } from "../actions";
 
 export const metadata: Metadata = { title: "Basket · Сагс" };
@@ -24,7 +25,13 @@ export default async function BasketPage({ params }: { params: Promise<{ lang: L
 
       {cart.lines.length === 0 ? (
         <div className="mt-10 flex flex-col items-start gap-6">
-          <p className="text-lg text-muted">{t.basket.empty}</p>
+          <p className="text-lg">{t.basket.empty}</p>
+          <div className="flex items-end gap-4">
+            <svg viewBox="0 0 130 54" width="130" height="54" aria-hidden="true" className="shrink-0 overflow-visible">
+              <Caterpillar x={14} y={36} seg={9} r={11} body={PALETTE.lavender} accent={PALETTE.ink} pattern="bands" arch={0.2} asleep />
+            </svg>
+            <span className="caption text-[21px]">{t.emptyBasketNote}</span>
+          </div>
           <Link href={`/${lang}`} className="btn">{t.basket.keepShopping}</Link>
         </div>
       ) : (
@@ -35,8 +42,8 @@ export default async function BasketPage({ params }: { params: Promise<{ lang: L
               const color = colorName(l.product, lang);
               return (
                 <li key={l.product.id} className="flex flex-wrap items-center gap-5 py-5">
-                  <Link href={`/${lang}/p/${l.product.slug}`} className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-tile">
-                    <ProductImage category={l.product.category} colorHex={l.product.colorHex} images={l.product.images} alt="" />
+                  <Link href={`/${lang}/p/${l.product.slug}`} className="tile-paper flex size-24 shrink-0 items-center justify-center overflow-hidden">
+                    <ProductImage seed={l.product.id} category={l.product.category} colorHex={l.product.colorHex} images={l.product.images} alt="" />
                   </Link>
                   <div className="flex min-w-48 flex-1 flex-col gap-1">
                     <Link href={`/${lang}/p/${l.product.slug}`} className="font-semibold hover:underline">{name}{color ? ` · ${color}` : ""}</Link>

@@ -24,7 +24,7 @@ export default async function PayPage({ params }: { params: Promise<{ lang: Lang
     const ok = order.status !== "cancelled";
     return (
       <div className="mx-auto max-w-xl pt-16 text-center">
-        <div className={`mx-auto flex size-16 items-center justify-center rounded-full text-3xl text-white ${ok ? "bg-ok" : "bg-muted"}`} aria-hidden="true">{ok ? "✓" : "×"}</div>
+        <div className={`mx-auto flex size-16 items-center justify-center rounded-full text-3xl text-paper ${ok ? "bg-ok" : "bg-muted"}`} aria-hidden="true">{ok ? "✓" : "×"}</div>
         <h1 className="mt-6 text-4xl font-semibold tracking-tight">{ok ? t.pay.paid : t.status.cancelled}</h1>
         {ok && <p className="mt-3 text-muted">{t.pay.paidNote}</p>}
         <Link href={`/${lang}/orders/${number}`} className="btn mt-8">{t.pay.viewOrder}</Link>
@@ -53,7 +53,7 @@ export default async function PayPage({ params }: { params: Promise<{ lang: Lang
         </div>
       )}
 
-      <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl bg-tile p-8">
+      <div className="tile-paper mt-8 flex flex-col items-center gap-4 p-8">
         {qrSrc && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={qrSrc} alt="QPay QR" width={240} height={240} className="rounded-lg bg-white p-2" />

@@ -1,39 +1,111 @@
 @import "tailwindcss";
 
-/* Brand tokens. Keep in sync with BRAND.colors in src/config.ts. */
+/* loop · "whimsical vintage storybook naturalism".
+   Warm ivory paper, chocolate ink, pigment colours. Keep in sync with BRAND.colors in src/config.ts. */
 @theme {
-  --color-ink: #141414;
-  --color-accent: #C8321D;
-  --color-accent2: #1F4FB5;
-  --color-tile: #F1E6D5;
-  --color-cream: #F7F3EC;
-  --color-muted: #6B6B6B;
-  --color-line: #E4DED3;
-  --color-ok: #2E6B3F;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --color-paper: #F6EFDF;   /* page */
+  --color-ink: #3A2417;     /* chocolate brown: text and outlines */
+  --color-accent: #B8391D;  /* tomato, dark enough for text */
+  --color-accent2: #4E7A2C; /* leaf green, dark enough for text */
+  --color-tile: #EFE3C8;    /* product tiles */
+  --color-cream: #F1E8D3;   /* panels */
+  --color-muted: #6E5646;   /* secondary text */
+  --color-line: #D9CBAE;    /* rules and borders */
+  --color-ok: #4E7A2C;
+  --color-tomato: #D9452B;
+  --color-chartreuse: #C8D44A;
+  --color-leaf: #6E9A3F;
+  --color-lavender: #B7A6D9;
+  --color-powder: #A8C6DE;
+  --color-apricot: #F2B98A;
+  --color-pink: #E7A8B3;
+  --color-coral: #EE7F62;
+  --font-sans: "Lora", Georgia, "Times New Roman", serif;
+  --font-display: "Old Standard TT", "Lora", Georgia, serif;
+  --font-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
 }
 
 html { -webkit-text-size-adjust: 100%; }
-body { background: #fff; color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+/* Paper grain over the whole shop. Purely decorative; never blocks clicks. */
+.shop::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.33 0 0 0 0 0.2 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Storybook headings: an old-book serif, regular weight, no tight tracking. */
+.shop main h1, .shop main h2, .shop main h3 {
+  font-family: var(--font-display);
+  font-weight: 400 !important;
+  letter-spacing: -0.005em !important;
+}
+.shop main h1 { line-height: 1.06 !important; }
+
+/* Hand-cut shapes: nothing in a picture book has a perfect corner. */
+.shop .rounded-2xl { border-radius: 22px 30px 18px 34px / 30px 18px 34px 22px; }
+.shop .rounded-xl { border-radius: 12px 18px 10px 16px / 16px 10px 18px 12px; }
+.shop .rounded-full:not([class*="size-"]) { border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px; }
+.shop .rounded-full[class*="size-"] { border-radius: 52% 48% 50% 50% / 48% 52% 49% 51%; }
 
 @layer components {
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-semibold text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 border-[1.5px] border-ink bg-ink px-6 text-[15px] font-semibold text-paper transition-transform hover:-rotate-1 disabled:cursor-not-allowed disabled:opacity-40;
+    border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
   }
   .btn-outline {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-ink bg-white px-6 text-sm font-semibold text-ink transition-colors hover:bg-cream disabled:opacity-40;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 border-[1.5px] border-ink bg-transparent px-6 text-[15px] font-semibold text-ink transition-transform hover:rotate-1 hover:bg-cream disabled:opacity-40;
+    border-radius: 18px 225px 18px 255px / 255px 18px 225px 18px;
   }
   .btn-ghost {
-    @apply inline-flex min-h-11 items-center gap-2 px-1 text-sm font-semibold text-ink underline underline-offset-4 hover:text-muted;
+    @apply inline-flex min-h-11 items-center gap-2 px-1 text-[15px] font-semibold text-ink underline decoration-[1.5px] underline-offset-4 hover:text-accent;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1px;
   }
   .field {
-    @apply min-h-11 w-full rounded-lg border border-[#CFC7BA] bg-white px-3 text-[15px] text-ink outline-none focus:border-ink focus:ring-2 focus:ring-ink/10;
+    @apply min-h-11 w-full border-[1.5px] border-[#B9A584] bg-[#FBF7EC] px-3 text-[15px] text-ink outline-none focus:border-ink focus:ring-2 focus:ring-ink/10;
+    border-radius: 10px 14px 9px 13px / 13px 9px 14px 10px;
   }
   .label {
-    @apply flex flex-col gap-1.5 text-[13px] font-semibold text-[#4A4A4A];
+    @apply flex flex-col gap-1.5 text-[13px] font-semibold text-muted;
   }
   .card {
-    @apply rounded-2xl border border-line bg-white;
+    @apply border-[1.5px] border-line bg-[#FBF7EC];
+    border-radius: 22px 30px 18px 34px / 30px 18px 34px 22px;
+  }
+  /* A product tile: a sheet of tinted paper with soft pigment pooling. */
+  .tile-paper {
+    background:
+      radial-gradient(120% 80% at 18% 8%, rgba(255, 252, 240, 0.55), transparent 60%),
+      radial-gradient(80% 60% at 88% 92%, rgba(150, 105, 55, 0.12), transparent 65%),
+      var(--color-tile);
+    border-radius: 22px 30px 18px 34px / 30px 18px 34px 22px;
+  }
+  /* Tiny handwritten caption, like a note in a naturalist's journal. */
+  .caption {
+    font-family: var(--font-hand);
+    font-size: 19px;
+    line-height: 1.15;
+    color: var(--color-muted);
+  }
+  /* A paper label stuck on at a slight angle. */
+  .tag {
+    @apply inline-block px-2.5 py-0.5 text-[13px] font-semibold;
+    font-family: var(--font-hand);
+    font-size: 17px;
+    border-radius: 6px 10px 5px 9px / 9px 5px 10px 6px;
+    transform: rotate(-3deg);
   }
   :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn-outline { transition: none; }
+  .btn:hover, .btn-outline:hover { transform: none; }
 }

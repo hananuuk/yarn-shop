@@ -191,17 +191,17 @@ export function drawChart(
   // Grid. Heavy line every 10 stitches/rows, counted from the bottom-right like a printed chart.
   for (let x = 0; x <= w; x++) {
     const heavy = (w - x) % 10 === 0;
-    ctx.fillStyle = heavy ? "rgba(20,20,20,.45)" : "rgba(20,20,20,.14)";
+    ctx.fillStyle = heavy ? "rgba(58,36,23,.5)" : "rgba(58,36,23,.16)";
     ctx.fillRect(Math.min(x * cell, w * cell - 1), 0, 1, h * cell);
   }
   for (let y = 0; y <= h; y++) {
     const heavy = (h - y) % 10 === 0;
-    ctx.fillStyle = heavy ? "rgba(20,20,20,.45)" : "rgba(20,20,20,.14)";
+    ctx.fillStyle = heavy ? "rgba(58,36,23,.5)" : "rgba(58,36,23,.16)";
     ctx.fillRect(0, Math.min(y * cell, h * cell - 1), w * cell, 1);
   }
   // Numbers: rows on the right, stitches along the bottom.
-  ctx.fillStyle = "#6B6B6B";
-  ctx.font = `${Math.max(9, Math.min(12, cell * 0.7))}px Manrope, system-ui, sans-serif`;
+  ctx.fillStyle = "#6E5646";
+  ctx.font = `${Math.max(9, Math.min(12, cell * 0.7))}px Lora, Georgia, serif`;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
   const step = cell < 10 ? 10 : 5;

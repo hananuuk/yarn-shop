@@ -1,12 +1,12 @@
 // Everything brand- and business-specific lives here so it can be changed in one place.
 
 export const BRAND = {
-  name: { mn: "утас", en: "utas" }, // placeholder shop name
+  name: { mn: "loop", en: "loop" },
   colors: {
-    ink: "#141414",
-    accent: "#C8321D", // second title part, sale prices
-    accent2: "#1F4FB5", // third title part
-    tile: "#F1E6D5", // product tile background; shoot product photos on a similar beige
+    ink: "#3A2417", // chocolate brown: text, outlines, first title part
+    accent: "#B8391D", // tomato: second title part, sale prices
+    accent2: "#4E7A2C", // leaf green: third title part
+    tile: "#EFE3C8", // product tile paper; shoot product photos on a similar warm backdrop
   },
 };
 

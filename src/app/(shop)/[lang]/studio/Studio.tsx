@@ -376,8 +376,8 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   }, [picker]);
 
   const toolBtn = (active: boolean) =>
-    `inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${active ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-cream"}`;
-  const smallBtn = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-line bg-white px-3 text-sm font-semibold hover:bg-cream disabled:opacity-35";
+    `inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-4 text-[15px] font-semibold transition-colors ${active ? "border-ink bg-ink text-paper" : "border-[#B9A584] bg-[#FBF7EC] hover:bg-cream"}`;
+  const smallBtn = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border-[1.5px] border-[#B9A584] bg-[#FBF7EC] px-3 text-sm font-semibold hover:bg-cream disabled:opacity-35";
   const cmW = (chart.width * 10) / gauge.stitches, cmH = (chart.height * 10) / gauge.rows;
 
   return (
@@ -479,7 +479,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
                     aria-pressed={active}
                     aria-label={`${i + 1}. ${y?.colour ?? ""}`}
                     className={`flex size-11 shrink-0 items-center justify-center rounded-full border border-black/10 text-xs font-bold ${active ? "ring-2 ring-ink ring-offset-2" : ""}`}
-                    style={{ background: colours[i], color: y && luminanceDark(colours[i]) ? "#fff" : "#141414" }}
+                    style={{ background: colours[i], color: y && luminanceDark(colours[i]) ? "#F6EFDF" : "#3A2417" }}
                   >
                     {i + 1}
                   </button>
@@ -505,13 +505,13 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             <h2 id="prev-h" className="text-2xl font-semibold tracking-tight">{t.preview}</h2>
             <div role="group" aria-label={t.zoom} className="inline-flex rounded-full border border-line p-1">
               {[1, 2, 3].map((n) => (
-                <button key={n} type="button" aria-pressed={tiles === n} onClick={() => setTiles(n)} className={`min-h-9 min-w-10 rounded-full px-3 text-sm font-semibold ${tiles === n ? "bg-ink text-white" : ""}`}>
+                <button key={n} type="button" aria-pressed={tiles === n} onClick={() => setTiles(n)} className={`min-h-9 min-w-10 rounded-full px-3 text-sm font-semibold ${tiles === n ? "bg-ink text-paper" : ""}`}>
                   {n}×{n}
                 </button>
               ))}
             </div>
           </div>
-          <div ref={previewWrap} className="w-full overflow-hidden rounded-2xl bg-tile">
+          <div ref={previewWrap} className="tile-paper w-full overflow-hidden">
             <canvas ref={previewCanvas} role="img" aria-label={t.preview} className="block" />
           </div>
           <p className="text-xs text-muted">{gaugeYarn ? t.gaugeFrom(gaugeYarn.line) : ""} · {gauge.stitches} × {gauge.rows} / 10 cm</p>
@@ -592,13 +592,13 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
 
       {/* ---------- Yarn picker ---------- */}
       {picker && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-0 sm:items-center sm:p-6" onClick={() => setPicker(null)}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#3A2417]/40 p-0 sm:items-center sm:p-6" onClick={() => setPicker(null)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="picker-h"
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-xl sm:rounded-3xl"
+            className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border-[1.5px] border-ink bg-paper shadow-[6px_8px_0_rgba(58,36,23,.2)] sm:rounded-3xl"
           >
             <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4">
               <h2 id="picker-h" className="text-xl font-semibold">{t.chooseYarn}</h2>

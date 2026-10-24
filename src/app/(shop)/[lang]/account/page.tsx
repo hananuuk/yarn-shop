@@ -46,7 +46,7 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
           <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
             {designs.map((d) => (
               <li key={d.id} className="flex flex-col gap-2">
-                <Link href={`/${lang}/studio?d=${d.id}`} className="flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-tile p-4">
+                <Link href={`/${lang}/studio?d=${d.id}`} className="tile-paper flex aspect-square items-center justify-center overflow-hidden p-4">
                   <DesignThumb width={d.width} height={d.height} cells={d.cells} colours={d.palette.map(hexOf)} size={168} />
                 </Link>
                 <div className="flex items-start justify-between gap-2">
@@ -73,8 +73,8 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
           {products.map((p) => (
             <li key={p.id}>
               <Link href={`/${lang}/p/${p.slug}`} className="flex flex-col gap-2">
-                <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl bg-tile">
-                  <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} alt="" />
+                <div className="tile-paper flex aspect-[3/4] items-center justify-center overflow-hidden">
+                  <ProductImage seed={p.id} category={p.category} colorHex={p.colorHex} images={p.images} alt="" />
                 </div>
                 <span className="font-medium">{productName(p, lang)}{colorName(p, lang) ? ` · ${colorName(p, lang)}` : ""}</span>
                 <span className="text-sm text-muted">{money(effectivePrice(p))}</span>

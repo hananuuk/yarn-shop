@@ -6,6 +6,7 @@ import { listBrands, listMaterials, listProducts, productName, colorName, needle
 import { ProductImage } from "@/components/ProductImage";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { PICK_COLORS, type Pick } from "@/lib/picks";
+import { YarnBallFigure } from "@/components/Storybook";
 
 const DIMS = ["brand", "material", "needle"] as const;
 
@@ -63,9 +64,33 @@ export default async function Catalog({
 
   const labelOf = (p: Pick) => dims.find((d) => d.key === p.dim)?.options.find((o) => o.value === p.value)?.label ?? p.value;
 
+  const showHero = picks.length === 0 && category === "yarn";
+  const h = t.hero;
+
   return (
-    <div className="pt-14">
-      <h1 aria-live="polite" className="text-[clamp(44px,7.2vw,104px)] font-semibold leading-[1.02] tracking-[-0.035em]">
+    <div className="pt-8 md:pt-10">
+      {showHero && (
+        <section aria-labelledby="hero-h" className="mb-16 flex flex-wrap items-center gap-x-12 gap-y-6 border-b-[1.5px] border-dashed border-line pb-14">
+          <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-5">
+            <span className="caption text-[22px]">{h.eyebrow}</span>
+            <h2 id="hero-h" className="text-[clamp(38px,5vw,68px)] leading-[1.05]">{h.title}</h2>
+            <p className="max-w-[46ch] text-[17px] leading-relaxed text-muted">{h.body}</p>
+            <div className="flex flex-wrap gap-3">
+              <a href="#catalog" className="btn">{h.shop}</a>
+              <Link href={`/${lang}/studio`} className="btn-outline">{h.studio}</Link>
+            </div>
+          </div>
+          <figure className="m-0 flex min-w-0 flex-[1_1_420px] flex-col gap-3">
+            <YarnBallFigure labels={h.legend} />
+            <figcaption className="flex flex-col gap-1 border-t border-line pt-3">
+              <span className="font-display text-[15px] italic">{h.fig}</span>
+              <span className="caption">{h.legend.join("  ·  ")}</span>
+            </figcaption>
+          </figure>
+        </section>
+      )}
+
+      <h1 id="catalog" aria-live="polite" className="scroll-mt-6 text-[clamp(44px,7.2vw,104px)] font-semibold leading-[1.02] tracking-[-0.035em]">
         {picks.length === 0
           ? category === "yarn" ? t.catalog.allYarn : t.catalog.allSupplies
           : picks.map((p, i) => (
@@ -87,7 +112,7 @@ export default async function Catalog({
       </Suspense>
 
       {products.length === 0 ? (
-        <p className="py-16 text-lg font-light text-muted">{t.catalog.empty}</p>
+        <p className="caption py-16 text-[24px]">{t.catalog.empty}</p>
       ) : (
         <ul className="mt-10 grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:gap-x-7 md:gap-y-12">
           {products.map((p) => {
@@ -100,17 +125,17 @@ export default async function Catalog({
             return (
               <li key={p.id}>
                 <Link href={`/${lang}/p/${p.slug}`} className="group flex flex-col gap-3.5">
-                  <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl bg-tile">
+                  <div className="tile-paper relative flex aspect-[3/4] items-center justify-center overflow-hidden">
                     {tag && (
-                      <span className={`absolute left-2.5 top-2.5 md:left-3.5 md:top-3.5 z-10 rounded-full bg-white px-2.5 py-1 text-xs font-bold ${sale && !soldOut ? "text-accent" : "text-ink"}`}>{tag}</span>
+                      <span className={`tag absolute left-2.5 top-2.5 z-10 md:left-3.5 md:top-3.5 ${soldOut ? "bg-paper text-muted" : sale ? "bg-tomato text-paper" : "bg-chartreuse text-ink"}`}>{tag}</span>
                     )}
-                    <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} className={`transition-transform duration-300 group-hover:scale-[1.03] ${soldOut ? "opacity-50" : ""}`} />
+                    <ProductImage seed={p.id} category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} className={`transition-transform duration-300 group-hover:-rotate-2 group-hover:scale-[1.03] ${soldOut ? "opacity-50" : ""}`} />
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
                       <span className="text-[15px] font-medium md:text-[17px]">{name}{color ? ` · ${color}` : ""}</span>
                       <span className="flex items-baseline gap-2 whitespace-nowrap text-[15px] font-medium md:text-[17px]">
-                        {sale && <span className="text-sm text-[#7A7A7A] line-through">{money(p.price)}</span>}
+                        {sale && <span className="text-sm text-muted line-through">{money(p.price)}</span>}
                         <span className={sale ? "font-bold text-accent" : ""}>{money(effectivePrice(p))}</span>
                       </span>
                     </div>
