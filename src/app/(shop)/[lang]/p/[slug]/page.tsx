@@ -72,13 +72,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       <div className="mt-4 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-16">
         <div className="flex flex-col gap-4">
-          <div className="tile-paper flex aspect-[3/4] items-center justify-center overflow-hidden">
-            <ProductImage seed={p.id} category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} />
+          <div className="flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl bg-tile">
+            <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} />
           </div>
           {p.images.length > 1 && (
             <div className="grid grid-cols-3 gap-4">
               {p.images.slice(1).map((img, i) => (
-                <div key={img.id} className="tile-paper flex aspect-square items-center justify-center overflow-hidden">
+                <div key={img.id} className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-tile">
                   <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} index={i + 1} alt="" />
                 </div>
               ))}
@@ -101,7 +101,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </div>
 
           <div className="flex items-baseline gap-3 text-2xl font-semibold">
-            {sale && <span className="text-lg font-medium text-muted line-through">{money(p.price)}</span>}
+            {sale && <span className="text-lg font-medium text-[#7A7A7A] line-through">{money(p.price)}</span>}
             <span className={sale ? "text-accent" : ""}>{money(effectivePrice(p))}</span>
           </div>
 
@@ -159,7 +159,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           )}
 
           {paragraphs.length > 0 && (
-            <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-ink">
+            <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-[#3E3E3E]">
               {paragraphs.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)}
             </div>
           )}

@@ -93,17 +93,8 @@ const mn = {
     noLength: "Уртын мэдээлэл алга", savedAt: "Хадгалсан", draftRestored: "Сүүлд зурж байсан загварыг сэргээлээ.",
     zoom: "Давталт",
   },
-  footer: { delivery: "Хүргэлт", pay: "QPay-ээр төлөх", contact: "Холбоо барих", tagline: "Ээрмэл, зүү, хээ · Улаанбаатар", note: "Бараа, үнэ, брэнд одоогоор туршилтынх. Хорхойнууд жинхэнэ." },
-  notFound: "Энэ хуудсыг хорхой идчихсэн бололтой.",
-  hero: {
-    eyebrow: "loop · Улаанбаатар",
-    title: "Ээрмэл, зүү, бас жаахан хорхой.",
-    body: "Нэхэх, дэгээдэх хүмүүст зориулсан сайн ээрмэл. Улаанбаатар хот дотор хүргэнэ. Хээгээ Нүд студид урьдчилан зураад үзэж болно.",
-    shop: "Ээрмэл үзэх", studio: "Нүд студи",
-    fig: "Зураг 1. Энгийн нэг бөмбөг ээрмэл ба түүний оршин суугчид.",
-    legend: ["a. уншиж буй", "b. ажилдаа явж буй", "c. амарч буй", "d. шөнийн ээлж"] as [string, string, string, string],
-  },
-  emptyBasketNote: "Дотор нь ганц хорхой амарч байгаа. Түүнийг тоохгүй байж болно.",
+  footer: { delivery: "Хүргэлт", pay: "QPay-ээр төлөх", contact: "Холбоо барих", note: "Нэр, лого, брэнд, зураг түр зуурынх" },
+  notFound: "Хуудас олдсонгүй.",
 };
 
 export type Dict = typeof mn;
@@ -201,17 +192,8 @@ const en: Dict = {
     noLength: "No length on file", savedAt: "Saved", draftRestored: "We restored the design you were last working on.",
     zoom: "Repeats",
   },
-  footer: { delivery: "Delivery", pay: "Pay with QPay", contact: "Contact", tagline: "Yarn, needles and patterns · Ulaanbaatar", note: "Products, prices and brands are samples for now. The caterpillars are real." },
-  notFound: "This page appears to have been eaten.",
-  hero: {
-    eyebrow: "loop · Ulaanbaatar",
-    title: "Yarn, needles, and a few small residents.",
-    body: "Good yarn for people who knit and crochet, delivered across Ulaanbaatar. Try your colourwork in Stitch Studio before you buy.",
-    shop: "Browse yarn", studio: "Stitch Studio",
-    fig: "Fig. 1. An ordinary ball of yarn and its residents.",
-    legend: ["a. reading", "b. commuting", "c. resting", "d. the night shift"],
-  },
-  emptyBasketNote: "A caterpillar is resting in it. You may ignore him.",
+  footer: { delivery: "Delivery", pay: "Pay with QPay", contact: "Contact", note: "Name, logo, brands and images are placeholders" },
+  notFound: "Page not found.",
 };
 
 export const getDict = (lang: Lang): Dict => (lang === "mn" ? mn : en);

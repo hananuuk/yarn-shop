@@ -65,14 +65,14 @@ export function CatalogFilters(props: {
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
                 onClick={() => setOpen(isOpen ? null : d.key)}
-                className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full border-[1.5px] pl-5 pr-4 text-[15px] font-semibold"
-                style={color ? { background: color, borderColor: color, color: "#F6EFDF" } : { background: "transparent", borderColor: "#3A2417", color: "#3A2417" }}
+                className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full border pl-5 pr-4 text-sm font-semibold"
+                style={color ? { background: color, borderColor: color, color: "#fff" } : { background: "#fff", borderColor: "#141414", color: "#141414" }}
               >
                 {label}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={isOpen ? "rotate-180" : ""}><path d="M6 9l6 6 6-6" /></svg>
               </button>
               {isOpen && (
-                <div role="listbox" aria-label={d.name} className="absolute left-0 top-[52px] z-20 flex max-h-80 min-w-60 flex-col overflow-auto rounded-2xl border-[1.5px] border-ink bg-[#FBF7EC] p-1.5 shadow-[4px_5px_0_rgba(58,36,23,.18)]">
+                <div role="listbox" aria-label={d.name} className="absolute left-0 top-[52px] z-20 flex max-h-80 min-w-60 flex-col overflow-auto rounded-2xl border border-line bg-white p-1.5 shadow-[0_12px_32px_rgba(20,20,20,.12)]">
                   {[{ value: "", label: props.labels.all }, ...d.options].map((o) => {
                     const sel = pick ? pick.value === o.value : o.value === "";
                     return (
