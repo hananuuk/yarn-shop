@@ -5,7 +5,7 @@ import { getDb, schema } from "@/db";
 import { COLOR_FAMILIES, MATERIALS } from "@/config";
 import { getProductById, listBrands } from "@/lib/products";
 import { ProductForm } from "../ProductForm";
-import { deleteImageAction, makeMainImageAction } from "../../actions";
+import { deleteImageAction, makeMainImageAction, moveImageAction, saveCaptionsAction } from "../../actions";
 
 export const metadata = { title: "Edit product" };
 
@@ -44,31 +44,58 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
       {saved && <p className="rounded-xl bg-[#E3EFE6] p-4 text-sm font-semibold text-ok" role="status">Saved.</p>}
 
       {p.images.length > 0 && (
-        <section className="card flex flex-col gap-3 p-6">
-          <h2 className="text-lg font-semibold">Photos</h2>
-          <p className="text-xs text-muted">The first photo is shown in the catalog.</p>
-          <ul className="flex flex-wrap gap-4">
+        <section className="card flex flex-col gap-4 p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-semibold">Photos ({p.images.length})</h2>
+            <p className="text-xs text-muted">The main photo shows in the catalog and first in the gallery. Shoppers swipe through the rest in this order.</p>
+          </div>
+          <form id="captions" action={saveCaptionsAction}>
+            <input type="hidden" name="productId" value={p.id} />
+          </form>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {p.images.map((img, i) => (
-              <li key={img.id} className="flex w-32 flex-col gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.url} alt="" className={`aspect-[4/5] w-full rounded-xl object-cover ${i === 0 ? "ring-2 ring-ink" : ""}`} />
-                <div className="flex justify-between text-xs">
-                  {i === 0 ? <span className="font-bold">Main</span> : (
+              <li key={img.id} className="flex flex-col gap-2 rounded-xl border border-line p-3">
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.url} alt="" className={`aspect-[4/5] w-full rounded-lg bg-tile object-cover ${i === 0 ? "ring-2 ring-ink" : ""}`} />
+                  <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-0.5 text-xs font-bold">{i === 0 ? "Main" : `#${i + 1}`}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <form action={moveImageAction}>
+                    <input type="hidden" name="productId" value={p.id} />
+                    <input type="hidden" name="imageId" value={img.id} />
+                    <input type="hidden" name="dir" value="-1" />
+                    <button disabled={i === 0} className="font-semibold underline disabled:opacity-30" aria-label="Move left">←</button>
+                  </form>
+                  <form action={moveImageAction}>
+                    <input type="hidden" name="productId" value={p.id} />
+                    <input type="hidden" name="imageId" value={img.id} />
+                    <input type="hidden" name="dir" value="1" />
+                    <button disabled={i === p.images.length - 1} className="font-semibold underline disabled:opacity-30" aria-label="Move right">→</button>
+                  </form>
+                  {i !== 0 && (
                     <form action={makeMainImageAction}>
                       <input type="hidden" name="productId" value={p.id} />
                       <input type="hidden" name="imageId" value={img.id} />
                       <button className="font-semibold underline">Make main</button>
                     </form>
                   )}
-                  <form action={deleteImageAction}>
+                  <form action={deleteImageAction} className="ml-auto">
                     <input type="hidden" name="productId" value={p.id} />
                     <input type="hidden" name="imageId" value={img.id} />
                     <button className="font-semibold text-accent underline">Delete</button>
                   </form>
                 </div>
+                <label className="label">Caption (MN)
+                  <input form="captions" name={`captionMn_${img.id}`} defaultValue={img.captionMn} maxLength={140} placeholder="Утасны ойрын зураг" className="field" />
+                </label>
+                <label className="label">Caption (EN)
+                  <input form="captions" name={`captionEn_${img.id}`} defaultValue={img.captionEn} maxLength={140} placeholder="Close-up of the strand" className="field" />
+                </label>
               </li>
             ))}
           </ul>
+          <button form="captions" className="btn self-start">Save captions</button>
         </section>
       )}
 

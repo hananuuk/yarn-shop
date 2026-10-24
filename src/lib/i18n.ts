@@ -33,6 +33,7 @@ const mn = {
     gauge: "Нягтрал", manufacturer: "Үйлдвэрлэгч", origin: "Гарал үүсэл",
     gaugeText: (s: number, r: number, mm: string) => `${s} нүд × ${r} мөр, 10 × 10 см${mm ? `, ${mm} зүү` : ""}`,
     g: "г", m: "м", colours: (n: number) => `${n} өнгө`,
+    prevPhoto: "Өмнөх зураг", nextPhoto: "Дараагийн зураг", photo: "Зураг",
   },
   basket: {
     title: "Сагс", empty: "Таны сагс хоосон байна.", keepShopping: "Дэлгүүр үзэх", remove: "Хасах",
@@ -132,6 +133,7 @@ const en: Dict = {
     gauge: "Gauge", manufacturer: "Manufacturer", origin: "Origin",
     gaugeText: (s, r, mm) => `${s} sts × ${r} rows, 10 × 10 cm${mm ? `, ${mm} needles` : ""}`,
     g: "g", m: "m", colours: (n) => `${n} colours`,
+    prevPhoto: "Previous photo", nextPhoto: "Next photo", photo: "Photo",
   },
   basket: {
     title: "Basket", empty: "Your basket is empty.", keepShopping: "Browse the shop", remove: "Remove",

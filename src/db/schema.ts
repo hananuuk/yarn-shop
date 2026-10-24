@@ -76,6 +76,8 @@ export const productImages = pgTable("product_images", {
   productId: integer("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   sort: integer("sort").notNull().default(0),
+  captionMn: text("caption_mn").notNull().default(""), // e.g. "Утасны ойрын зураг"
+  captionEn: text("caption_en").notNull().default(""), // e.g. "Close-up of the strand"
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

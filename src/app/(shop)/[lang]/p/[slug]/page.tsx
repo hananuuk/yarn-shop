@@ -8,7 +8,7 @@ import { getDict } from "@/lib/i18n";
 import { getAnonId, getCurrentUser } from "@/lib/auth";
 import { track } from "@/lib/events";
 import { getProductBySlug, listColourways, productName, colorName, needleLabel, mmRange, isOnSale, effectivePrice } from "@/lib/products";
-import { ProductImage } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import { AddToCart } from "@/components/AddToCart";
 import { toggleSaveAction, reviewAction } from "../../actions";
 
@@ -71,20 +71,17 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <Link href={`/${lang}${p.category === "supplies" ? "?cat=supplies" : ""}`} className="btn-ghost no-underline">← {t.product.back}</Link>
 
       <div className="mt-4 grid gap-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-16">
-        <div className="flex flex-col gap-4">
-          <div className="flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl bg-tile">
-            <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} alt={`${name}${color ? ", " + color : ""}`} />
-          </div>
-          {p.images.length > 1 && (
-            <div className="grid grid-cols-3 gap-4">
-              {p.images.slice(1).map((img, i) => (
-                <div key={img.id} className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-tile">
-                  <ProductImage category={p.category} colorHex={p.colorHex} images={p.images} index={i + 1} alt="" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery
+          images={p.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            caption: (lang === "mn" ? img.captionMn || img.captionEn : img.captionEn || img.captionMn) ?? "",
+          }))}
+          category={p.category}
+          colorHex={p.colorHex}
+          alt={`${name}${color ? ", " + color : ""}`}
+          labels={{ prev: tp.prevPhoto, next: tp.nextPhoto, photo: tp.photo }}
+        />
 
         <div className="flex flex-col gap-6 md:sticky md:top-6 md:self-start">
           <div className="flex flex-col gap-2">

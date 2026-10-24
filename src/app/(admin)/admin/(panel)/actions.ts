@@ -125,6 +125,42 @@ export async function makeMainImageAction(f: FormData) {
   revalidatePath(`/admin/products/${productId}`);
 }
 
+async function orderedImages(productId: number) {
+  const db = await getDb();
+  return db.select().from(schema.productImages).where(eq(schema.productImages.productId, productId)).orderBy(asc(schema.productImages.sort), asc(schema.productImages.id));
+}
+
+// Move a photo one place left (-1) or right (+1) in the gallery.
+export async function moveImageAction(f: FormData) {
+  await requireAdmin();
+  const db = await getDb();
+  const productId = Number(f.get("productId"));
+  const imageId = Number(f.get("imageId"));
+  const dir = Number(f.get("dir")) < 0 ? -1 : 1;
+  const imgs = await orderedImages(productId);
+  const k = imgs.findIndex((i) => i.id === imageId);
+  const j = k + dir;
+  if (k < 0 || j < 0 || j >= imgs.length) return;
+  [imgs[k], imgs[j]] = [imgs[j], imgs[k]];
+  for (let i = 0; i < imgs.length; i++) await db.update(schema.productImages).set({ sort: i }).where(eq(schema.productImages.id, imgs[i].id));
+  revalidatePath(`/admin/products/${productId}`);
+}
+
+export async function saveCaptionsAction(f: FormData) {
+  await requireAdmin();
+  const db = await getDb();
+  const productId = Number(f.get("productId"));
+  for (const img of await orderedImages(productId)) {
+    const mn = String(f.get(`captionMn_${img.id}`) ?? "").trim().slice(0, 140);
+    const en = String(f.get(`captionEn_${img.id}`) ?? "").trim().slice(0, 140);
+    if (mn !== img.captionMn || en !== img.captionEn) {
+      await db.update(schema.productImages).set({ captionMn: mn, captionEn: en }).where(eq(schema.productImages.id, img.id));
+    }
+  }
+  revalidatePath(`/admin/products/${productId}`);
+  redirect(`/admin/products/${productId}?saved=1`);
+}
+
 export async function quickStockAction(f: FormData) {
   await requireAdmin();
   const db = await getDb();

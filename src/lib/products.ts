@@ -4,7 +4,8 @@ import { MATERIALS, NEEDLE_GROUPS, type Lang, type NeedleGroup } from "@/config"
 import type { StudioYarn } from "@/lib/studio";
 
 export type Product = typeof schema.products.$inferSelect;
-export type ProductWithImages = Product & { images: { id: number; url: string }[] };
+export type ProductImageInfo = { id: number; url: string; captionMn: string; captionEn: string };
+export type ProductWithImages = Product & { images: ProductImageInfo[] };
 
 export const effectivePrice = (p: Pick<Product, "price" | "salePrice">) =>
   p.salePrice != null && p.salePrice < p.price ? p.salePrice : p.price;
@@ -26,13 +27,7 @@ export function needleLabel(p: Pick<Product, "needleMinMm" | "needleMaxMm">, lan
   return mmRange(p.needleMinMm, p.needleMaxMm, lang);
 }
 
-// Is the hex colour dark? (Used to pick strand colour on the drawn placeholder.)
-export function isDark(hex: string) {
-  const h = hex.replace("#", "");
-  const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 120;
-}
+export { isDark } from "@/lib/color";
 
 export type CatalogFilter = {
   category?: "yarn" | "supplies";
@@ -50,7 +45,7 @@ async function attachImages(rows: Product[]): Promise<ProductWithImages[]> {
     .from(schema.productImages)
     .where(inArray(schema.productImages.productId, rows.map((r) => r.id)))
     .orderBy(asc(schema.productImages.sort), asc(schema.productImages.id));
-  return rows.map((r) => ({ ...r, images: imgs.filter((i) => i.productId === r.id).map((i) => ({ id: i.id, url: i.url })) }));
+  return rows.map((r) => ({ ...r, images: imgs.filter((i) => i.productId === r.id).map((i) => ({ id: i.id, url: i.url, captionMn: i.captionMn, captionEn: i.captionEn })) }));
 }
 
 export async function listProducts(f: CatalogFilter): Promise<ProductWithImages[]> {
@@ -109,6 +104,27 @@ export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "cate
       eq(schema.products.category, p.category),
     ))
     .orderBy(asc(schema.products.id));
+}
+
+// All colourways of each yarn line in one go, for the catalog's colour dots.
+// Key: brand + English name + category (the same rule as listColourways).
+export const colourwayKey = (p: Pick<Product, "brand" | "nameEn" | "category">) => `${p.category}|${p.brand}|${p.nameEn}`;
+export async function listColourwayGroups() {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      id: schema.products.id, brand: schema.products.brand, nameEn: schema.products.nameEn, category: schema.products.category,
+      colorHex: schema.products.colorHex, stock: schema.products.stock,
+    })
+    .from(schema.products)
+    .where(eq(schema.products.isActive, true))
+    .orderBy(asc(schema.products.id));
+  const groups = new Map<string, { id: number; colorHex: string; stock: number }[]>();
+  for (const r of rows) {
+    const k = colourwayKey(r);
+    groups.set(k, [...(groups.get(k) ?? []), { id: r.id, colorHex: r.colorHex, stock: r.stock }]);
+  }
+  return groups;
 }
 
 // Yarns the Stitch Studio can paint with (visible yarn products, localised).

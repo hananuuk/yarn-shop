@@ -1,4 +1,4 @@
-import { isDark } from "@/lib/products";
+import { isDark } from "@/lib/color";
 
 type P = {
   category: string;
