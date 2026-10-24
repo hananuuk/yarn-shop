@@ -14,7 +14,7 @@ export const LANGS = ["mn", "en"] as const;
 export type Lang = (typeof LANGS)[number];
 export const isLang = (v: string): v is Lang => (LANGS as readonly string[]).includes(v);
 
-export const MATERIALS = ["wool", "alpaca", "cashmere", "yak", "camel", "cotton", "blend", "acrylic", "other"] as const;
+export const MATERIALS = ["wool", "alpaca", "cashmere", "yak", "camel", "cotton", "silk", "blend", "acrylic", "other"] as const;
 export type Material = (typeof MATERIALS)[number];
 
 export const COLOR_FAMILIES = ["red", "blue", "green", "yellow", "pink", "neutral", "multi"] as const;

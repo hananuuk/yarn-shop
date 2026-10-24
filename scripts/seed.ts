@@ -56,6 +56,20 @@ const itemsV2: Seed[] = [
   { ...andes, slug: "andes-natural", colorNameMn: "Цайвар", colorNameEn: "Natural", colorHex: "#ECE5D5", colorFamily: "neutral", stock: 16 },
 ];
 
+// ---- Version 3: Knitting for Olive "Pure Silk" (specs and price from Hana; stock is a placeholder) ----
+const itemsV3: Seed[] = [
+  {
+    slug: "pure-silk-cherry-blossom", brand: "Knitting for Olive", nameMn: "Pure Silk", nameEn: "Pure Silk",
+    colorNameMn: "Интоорын цэцэг", colorNameEn: "Cherry blossom", colorHex: "#F2CDD3", colorFamily: "pink",
+    material: "silk", needleMinMm: 3, needleMaxMm: 3, weightG: 50, lengthM: 250,
+    compositionMn: "100% жинхэнэ торго", compositionEn: "100% real silk",
+    gaugeStitches: 28, gaugeRows: 38, gaugeNeedleMm: 3, manufacturer: "Knitting for Olive",
+    price: 35000, stock: 10, isNew: true,
+    descriptionMn: "100% торгон нарийн ээрмэл. Гөлгөр, зөөлөн гялалзсан, хөнгөн. Зуны цамц, нимгэн ороолт, нарийн хээнд тохиромжтой.",
+    descriptionEn: "A fine yarn of 100% silk. Smooth, softly lustrous and light. Lovely for summer tops, airy scarves and fine colourwork.",
+  },
+];
+
 // Each version is loaded once per database, tracked in the "meta" table.
 // Deleting a sample product in the admin will not bring it back on the next deploy.
 async function main() {
@@ -77,6 +91,11 @@ async function main() {
     await db.insert(schema.products).values(itemsV2.map(fill)).onConflictDoNothing();
     console.log(`Seed v2: ${itemsV2.length} Andes colourways.`);
     version = 2;
+  }
+  if (version < 3) {
+    await db.insert(schema.products).values(itemsV3.map(fill)).onConflictDoNothing();
+    console.log(`Seed v3: ${itemsV3.length} Pure Silk colourway.`);
+    version = 3;
   }
   await db
     .insert(schema.meta)

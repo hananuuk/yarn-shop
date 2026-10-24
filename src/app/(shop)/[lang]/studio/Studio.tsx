@@ -137,6 +137,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const gaugeYarn = palette.map((id) => byId.get(id)).find((y) => y?.gaugeStitches && y?.gaugeRows);
   const gauge: Gauge = gaugeYarn ? { stitches: gaugeYarn.gaugeStitches!, rows: gaugeYarn.gaugeRows! } : DEFAULT_GAUGE;
   const safeCurrent = Math.min(current, palette.length - 1);
+  const mixedGauge = new Set(palette.map((id) => byId.get(id)).filter((y) => y?.gaugeStitches && y?.gaugeRows).map((y) => `${y!.gaugeStitches}x${y!.gaugeRows}`)).size > 1;
 
   // ---------- Chart canvas ----------
   const chartWrap = useRef<HTMLDivElement>(null);
@@ -545,6 +546,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             <canvas ref={previewCanvas} role="img" aria-label={t.preview} className="block lg:absolute lg:inset-0" />
           </div>
           <p className="text-xs text-muted">{gaugeYarn ? `${t.gaugeFrom(gaugeYarn.line)} · ` : ""}{gauge.stitches} × {gauge.rows} / 10 cm</p>
+          {mixedGauge && <p className="text-xs font-semibold text-accent">{t.gaugeMix}</p>}
         </section>
 
       {/* ---------- Below the fold: yarn calculator, save, download ---------- */}
