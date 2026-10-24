@@ -103,7 +103,10 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
                       </button>
                     </form>
                   </td>
-                  <td className="pr-4 text-right"><Link href={`/admin/products/${x.id}`} className="font-semibold underline underline-offset-4">Edit</Link></td>
+                  <td className="whitespace-nowrap pr-4 text-right">
+                    {x.category === "yarn" && <Link href={`/admin/products/new?from=${x.id}`} className="mr-4 font-semibold text-muted underline underline-offset-4 hover:text-ink" title="Same yarn, new colour">+ Colour</Link>}
+                    <Link href={`/admin/products/${x.id}`} className="font-semibold underline underline-offset-4">Edit</Link>
+                  </td>
                 </tr>
               );
             })}

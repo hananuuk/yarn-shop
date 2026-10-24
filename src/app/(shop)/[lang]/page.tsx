@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { NEEDLE_GROUPS, money, type Lang, type NeedleGroup } from "@/config";
 import { getDict } from "@/lib/i18n";
-import { colourwayKey, listColourwayGroups, listBrands, listMaterials, listProducts, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
+import { listBrands, listMaterials, listProducts, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
 import { ProductImage } from "@/components/ProductImage";
 import { CatalogFilters } from "@/components/CatalogFilters";
 import { PICK_COLORS, type Pick } from "@/lib/picks";
@@ -53,7 +53,6 @@ export default async function Catalog({
   const picks = parsePicks(sp.f).filter((p) => dims.some((d) => d.key === p.dim && d.options.some((o) => o.value === p.value)));
   const get = (dim: string) => picks.find((p) => p.dim === dim)?.value;
 
-  const colourGroups = await listColourwayGroups();
   const products = await listProducts({
     category,
     brand: get("brand"),
@@ -116,25 +115,6 @@ export default async function Catalog({
                       </span>
                     </div>
                     <span className="text-xs text-muted md:text-[13px]">{meta}</span>
-                    {(() => {
-                      const group = colourGroups.get(colourwayKey(p)) ?? [];
-                      if (group.length < 2) return null;
-                      const shown = group.slice(0, 6);
-                      return (
-                        <span className="mt-1 flex items-center gap-1.5">
-                          <span className="flex items-center gap-1" aria-hidden="true">
-                            {shown.map((c) => (
-                              <span
-                                key={c.id}
-                                className={`size-3.5 rounded-full border ${c.id === p.id ? "border-ink ring-1 ring-ink ring-offset-1" : "border-black/10"} ${c.stock <= 0 ? "opacity-40" : ""}`}
-                                style={{ background: c.colorHex }}
-                              />
-                            ))}
-                          </span>
-                          <span className="text-xs text-muted">{t.product.colours(group.length)}</span>
-                        </span>
-                      );
-                    })()}
                   </div>
                 </Link>
               </li>

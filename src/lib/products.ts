@@ -89,7 +89,9 @@ export async function listMaterials(category: "yarn" | "supplies" = "yarn"): Pro
 }
 
 // Other colours of the same yarn: same brand + English name + category.
-export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "category">) {
+// Other colours of the same yarn: same brand, English name and category.
+// The shop shows only visible ones; admin passes includeHidden to see all.
+export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "category">, includeHidden = false) {
   const db = await getDb();
   return db
     .select({
@@ -98,33 +100,12 @@ export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "cate
     })
     .from(schema.products)
     .where(and(
-      eq(schema.products.isActive, true),
+      includeHidden ? undefined : eq(schema.products.isActive, true),
       eq(schema.products.brand, p.brand),
       eq(schema.products.nameEn, p.nameEn),
       eq(schema.products.category, p.category),
     ))
     .orderBy(asc(schema.products.id));
-}
-
-// All colourways of each yarn line in one go, for the catalog's colour dots.
-// Key: brand + English name + category (the same rule as listColourways).
-export const colourwayKey = (p: Pick<Product, "brand" | "nameEn" | "category">) => `${p.category}|${p.brand}|${p.nameEn}`;
-export async function listColourwayGroups() {
-  const db = await getDb();
-  const rows = await db
-    .select({
-      id: schema.products.id, brand: schema.products.brand, nameEn: schema.products.nameEn, category: schema.products.category,
-      colorHex: schema.products.colorHex, stock: schema.products.stock,
-    })
-    .from(schema.products)
-    .where(eq(schema.products.isActive, true))
-    .orderBy(asc(schema.products.id));
-  const groups = new Map<string, { id: number; colorHex: string; stock: number }[]>();
-  for (const r of rows) {
-    const k = colourwayKey(r);
-    groups.set(k, [...(groups.get(k) ?? []), { id: r.id, colorHex: r.colorHex, stock: r.stock }]);
-  }
-  return groups;
 }
 
 // Yarns the Stitch Studio can paint with (visible yarn products, localised).

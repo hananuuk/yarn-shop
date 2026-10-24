@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { COLOR_FAMILIES, MATERIALS } from "@/config";
-import { getProductById, listBrands } from "@/lib/products";
+import { getProductById, listBrands, listColourways } from "@/lib/products";
 import { ProductForm } from "../ProductForm";
 import { deleteImageAction, makeMainImageAction, moveImageAction, saveCaptionsAction } from "../../actions";
 
@@ -28,6 +28,7 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
       .where(and(eq(schema.orderItems.productId, p.id), sql`${schema.orders.paidAt} is not null`)),
   ]);
   const s = (v: number | null) => (v == null ? "" : String(v));
+  const colourways = p.category === "yarn" ? await listColourways(p, true) : [];
 
   return (
     <div className="flex max-w-4xl flex-col gap-6">
@@ -41,6 +42,30 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
         <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-line"><strong>{saves.n}</strong> saves</span>
         <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-line"><strong>{sold.n}</strong> sold</span>
       </div>
+      {p.category === "yarn" && (
+        <section className="card flex flex-col gap-3 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Colours of {p.brand} {p.nameEn} ({colourways.length})</h2>
+            <Link href={`/admin/products/new?from=${p.id}`} className="btn-outline">+ Add another colour</Link>
+          </div>
+          <ul className="flex flex-wrap gap-2">
+            {colourways.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/admin/products/${c.id}`}
+                  aria-current={c.id === p.id ? "page" : undefined}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm ring-1 ${c.id === p.id ? "font-semibold ring-ink" : "ring-line hover:bg-cream"}`}
+                >
+                  <span className="size-4 rounded-full border border-black/10" style={{ background: c.colorHex }} />
+                  {c.colorNameEn || c.colorNameMn}
+                  <span className={`text-xs ${c.stock > 0 ? "text-muted" : "text-accent"}`}>{c.stock}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted">Colours are grouped by the same brand and English name. Shoppers see them as colour buttons on the product page.</p>
+        </section>
+      )}
       {saved && <p className="rounded-xl bg-[#E3EFE6] p-4 text-sm font-semibold text-ok" role="status">Saved.</p>}
 
       {p.images.length > 0 && (
