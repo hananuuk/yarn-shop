@@ -415,7 +415,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const cmW = (chart.width * 10) / gauge.stitches, cmH = (chart.height * 10) / gauge.rows;
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:h-[calc(100dvh-96px)] lg:min-h-[600px] lg:grid-cols-[232px_minmax(0,1fr)_280px] lg:gap-6 lg:pb-4">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[232px_minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[max(560px,calc(100dvh-96px))_auto] lg:gap-x-6 lg:gap-y-12">
       {notice && (
         <p role="status" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-lg">{notice}</p>
       )}
@@ -510,10 +510,9 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
         </section>
       </aside>
 
-      {/* ---------- Middle: chart, then the knitted preview ---------- */}
-      <div className="flex min-w-0 flex-col gap-10 lg:min-h-0 lg:gap-4">
-        <section aria-labelledby="chart-h" className="flex flex-col gap-2 lg:min-h-0 lg:flex-[3]">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
+      {/* ---------- Chart and knitted preview, side by side ---------- */}
+        <section aria-labelledby="chart-h" className="flex min-w-0 flex-col gap-2 lg:min-h-0 lg:pb-4">
+          <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
             <h2 id="chart-h" className="text-lg font-semibold tracking-tight">{t.chart}</h2>
             <span className="text-sm text-muted">{t.chartSize(chart.width, chart.height, cm(cmW), cm(cmH))}</span>
           </div>
@@ -529,11 +528,10 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
               onPointerCancel={onUp}
             />
           </div>
-          <p className="text-xs text-muted lg:truncate" title={t.chartHelp}>{t.chartHelp}</p>
         </section>
 
-        <section aria-labelledby="prev-h" className="flex flex-col gap-2 lg:min-h-0 lg:flex-[2]">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <section aria-labelledby="prev-h" className="flex min-w-0 flex-col gap-2 lg:min-h-0 lg:pb-4">
+          <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
             <h2 id="prev-h" className="text-lg font-semibold tracking-tight">{t.preview}</h2>
             <div role="group" aria-label={t.zoom} className="inline-flex rounded-full border border-line p-1">
               {[1, 2, 3].map((n) => (
@@ -548,12 +546,12 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
           </div>
           <p className="text-xs text-muted">{gaugeYarn ? `${t.gaugeFrom(gaugeYarn.line)} · ` : ""}{gauge.stitches} × {gauge.rows} / 10 cm</p>
         </section>
-      </div>
 
-      {/* ---------- Right: yarn calculator, save, download ---------- */}
-      <aside className="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto">
-        <section aria-labelledby="est-h" className="flex flex-col gap-3 rounded-2xl bg-cream p-4">
-          <h2 id="est-h" className="text-lg font-semibold tracking-tight">{t.yarnsNeeded}</h2>
+      {/* ---------- Below the fold: yarn calculator, save, download ---------- */}
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:col-span-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <section aria-labelledby="est-h" className="grid gap-x-10 gap-y-4 rounded-2xl bg-cream p-5 md:grid-cols-[260px_minmax(0,1fr)] md:p-6">
+          <div className="flex flex-col gap-3">
+          <h2 id="est-h" className="text-xl font-semibold tracking-tight">{t.yarnsNeeded}</h2>
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-semibold text-[#4A4A4A]">{t.projectSize}</span>
             <div className="flex flex-wrap gap-1.5">
@@ -575,7 +573,9 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
               </label>
             </div>
           </div>
+          </div>
 
+          <div className="flex min-w-0 flex-col gap-3">
           <ul className="flex flex-col divide-y divide-dashed divide-[#D9D1C3]">
             {lines.map((l) => (
               <li key={l.id} className="flex items-center gap-3 py-2">
@@ -605,6 +605,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
               {addState === "adding" ? "…" : t.addAll}
             </button>
           )}
+          </div>
         </section>
 
         <section aria-label={t.save} className="flex flex-col gap-2">
@@ -626,7 +627,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             {loggedIn && <Link href={`/${lang}/account#designs`} className="btn-ghost">{t.myDesigns}</Link>}
           </div>
         </section>
-      </aside>
+      </div>
 
       {/* ---------- Yarn picker ---------- */}
       {picker && (
