@@ -204,3 +204,18 @@ export const meta = pgTable("meta", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+// ---------- Stitch Studio ----------
+// A colourwork chart: cells is a string of palette indexes ("0" = main colour), row by row from the top.
+// palette holds shop product ids, index 0 first.
+export const designs = pgTable("designs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  cells: text("cells").notNull(),
+  palette: jsonb("palette").$type<number[]>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("designs_user_idx").on(t.userId, t.updatedAt)]);

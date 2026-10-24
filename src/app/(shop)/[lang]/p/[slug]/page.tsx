@@ -151,6 +151,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
             </button>
           </form>
 
+          {p.category === "yarn" && (
+            <Link href={`/${lang}/studio?y=${p.id}`} className="btn-ghost self-start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" /></svg>
+              {tp.tryStudio}
+            </Link>
+          )}
+
           {paragraphs.length > 0 && (
             <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-[#3E3E3E]">
               {paragraphs.map((para, i) => <p key={i} className="whitespace-pre-line">{para}</p>)}

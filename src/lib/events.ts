@@ -2,7 +2,7 @@ import { getDb, schema } from "@/db";
 
 export type EventType =
   | "product_view" | "product_save" | "add_to_cart" | "checkout_start"
-  | "order_created" | "order_paid" | "signup" | "login" | "logout";
+  | "order_created" | "order_paid" | "signup" | "login" | "logout" | "design_save";
 
 // Analytics logging. Never throws: a failed log must not break a purchase.
 export async function track(

@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { MATERIALS, NEEDLE_GROUPS, type Lang, type NeedleGroup } from "@/config";
+import type { StudioYarn } from "@/lib/studio";
 
 export type Product = typeof schema.products.$inferSelect;
 export type ProductWithImages = Product & { images: { id: number; url: string }[] };
@@ -108,6 +109,30 @@ export async function listColourways(p: Pick<Product, "brand" | "nameEn" | "cate
       eq(schema.products.category, p.category),
     ))
     .orderBy(asc(schema.products.id));
+}
+
+// Yarns the Stitch Studio can paint with (visible yarn products, localised).
+export async function listStudioYarns(lang: Lang): Promise<StudioYarn[]> {
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(schema.products)
+    .where(and(eq(schema.products.isActive, true), eq(schema.products.category, "yarn")))
+    .orderBy(asc(schema.products.brand), asc(schema.products.nameEn), asc(schema.products.id));
+  return rows.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    line: `${p.brand} ${productName(p, lang)}`.trim(),
+    colour: colorName(p, lang) || productName(p, lang),
+    hex: p.colorHex,
+    lengthM: p.lengthM,
+    gaugeStitches: p.gaugeStitches,
+    gaugeRows: p.gaugeRows,
+    needle: needleLabel(p, lang),
+    price: effectivePrice(p),
+    stock: p.stock,
+    tweed: /tweed|твид/i.test(`${p.nameEn} ${p.colorNameEn} ${p.compositionEn}`),
+  }));
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductWithImages | null> {
