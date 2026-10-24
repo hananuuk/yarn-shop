@@ -212,24 +212,26 @@ export function drawChart(
 }
 
 // Knitted fabric: each stitch is a "V" of two leaning legs, shaded, with slight
-// heather variation and coloured flecks for tweed yarns.
+// heather variation and coloured flecks for tweed yarns. Draws `cols` × `rows`
+// stitches, repeating the chart as often as needed, so any area can be filled edge to edge.
 export function drawKnit(
   ctx: CanvasRenderingContext2D, ch: Chart, colours: string[], tweed: boolean[],
-  tilesX: number, tilesY: number, sw: number, sh: number,
+  cols: number, rows: number, sw: number, sh: number, areaW = cols * sw, areaH = rows * sh,
 ) {
   const { width: w, height: h, cells } = ch;
-  const cols = w * tilesX, rows = h * tilesY;
+  // Anchored bottom-right, like the chart is read: any cut-off partial repeat lands at the top/left.
+  const offX = areaW - cols * sw, offY = areaH - rows * sh;
   const rgb = colours.map(hexToRgb);
   ctx.fillStyle = css(mix(rgb[0] ?? WHITE, BLACK, 0.55));
-  ctx.fillRect(0, 0, cols * sw, rows * sh);
+  ctx.fillRect(0, 0, areaW, areaH);
   for (let ry = 0; ry < rows; ry++) {
     for (let cx = 0; cx < cols; cx++) {
-      const idx = cells[(ry % h) * w + (cx % w)];
+      const idx = cells[(h - 1 - ((rows - 1 - ry) % h)) * w + (w - 1 - ((cols - 1 - cx) % w))];
       const base = rgb[idx] ?? WHITE;
       const seed = ry * 7919 + cx;
       const jitter = (rand(seed) - 0.5) * 0.12;
       const col = jitter > 0 ? mix(base, WHITE, jitter) : mix(base, BLACK, -jitter);
-      const x0 = cx * sw, y0 = ry * sh;
+      const x0 = offX + cx * sw, y0 = offY + ry * sh;
       for (const leg of [-1, 1]) {
         ctx.save();
         ctx.translate(x0 + sw / 2 + leg * sw * 0.22, y0 + sh * 0.5);
