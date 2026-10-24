@@ -158,7 +158,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const cell = Math.max(5, Math.min(28, Math.floor((wrapW - GUTTER_R) / chart.width), Math.floor(((desktop ? wrapH : 620) - GUTTER_B) / chart.height)));
+  const cell = Math.max(5, Math.min(44, Math.floor((wrapW - GUTTER_R) / chart.width), Math.floor(((desktop ? wrapH : 620) - GUTTER_B) / chart.height)));
 
   useEffect(() => {
     const c = chartCanvas.current;
@@ -300,7 +300,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
       c.style.height = `${H}px`;
       const ctx = c.getContext("2d")!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawKnit(ctx, chart, colours, tweed, cols, rows, sw, sh, W, H);
+      drawKnit(ctx, chart, colours, tweed, cols, rows, sw, sh, W, H, dpr);
     }, 120);
     return () => clearTimeout(id);
   }, [chart, colours.join(), tweed.join(), tiles, previewW, previewH, desktop, gauge.stitches, gauge.rows]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -415,13 +415,13 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const cmW = (chart.width * 10) / gauge.stitches, cmH = (chart.height * 10) / gauge.rows;
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[232px_minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[max(560px,calc(100dvh-96px))_auto] lg:gap-x-6 lg:gap-y-12">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[232px_minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[minmax(max(560px,calc(100dvh-96px)),auto)_auto] lg:gap-x-6 lg:gap-y-12">
       {notice && (
         <p role="status" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-lg">{notice}</p>
       )}
 
       {/* ---------- Left: tools, colours, size ---------- */}
-      <aside aria-label={t.tools} className="flex flex-col gap-4 rounded-2xl border border-line p-3 lg:min-h-0 lg:overflow-y-auto">
+      <aside aria-label={t.tools} className="flex flex-col gap-4 self-start rounded-2xl border border-line p-3">
         <section aria-labelledby="tools-h" className="flex flex-col gap-1.5">
           <h2 id="tools-h" className={panelH}>{t.tools}</h2>
           <div role="toolbar" aria-label={t.tools} className="grid grid-cols-4 gap-1.5">
@@ -516,12 +516,12 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             <h2 id="chart-h" className="text-lg font-semibold tracking-tight">{t.chart}</h2>
             <span className="text-sm text-muted">{t.chartSize(chart.width, chart.height, cm(cmW), cm(cmH))}</span>
           </div>
-          <div ref={chartWrap} className="w-full min-w-0 overflow-x-auto lg:min-h-0 lg:flex-1 lg:basis-0 lg:overflow-hidden">
+          <div ref={chartWrap} className="relative w-full min-w-0 overflow-x-auto lg:min-h-0 lg:flex-1 lg:basis-0 lg:overflow-hidden">
             <canvas
               ref={chartCanvas}
               role="img"
               aria-label={`${t.chart}: ${chart.width} × ${chart.height}`}
-              className={`block touch-none select-none ${tool === "pick" ? "cursor-copy" : "cursor-crosshair"}`}
+              className={`block touch-none select-none lg:absolute lg:left-0 lg:top-0 ${tool === "pick" ? "cursor-copy" : "cursor-crosshair"}`}
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}

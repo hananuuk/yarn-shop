@@ -211,47 +211,165 @@ export function drawChart(
   for (let s = 1; s <= w; s++) if (s === 1 || s % step === 0) ctx.fillText(String(s), (w - s) * cell + cell / 2, h * cell + 4);
 }
 
-// Knitted fabric: each stitch is a "V" of two leaning legs, shaded, with slight
-// heather variation and coloured flecks for tweed yarns. Draws `cols` × `rows`
-// stitches, repeating the chart as often as needed, so any area can be filled edge to edge.
+// Knitted fabric (stockinette). Each stitch is a "V" of two plump, leaning legs.
+// A leg is drawn once per colour (and a few brightness variants) into a small
+// sprite with shading, fibre strands, a fuzzy halo and a soft shadow, then stamped
+// for every stitch. Rows are stamped top to bottom so each row's legs tuck over the
+// tips of the row above, the way real knitting interlocks. Draws `cols` × `rows`
+// stitches, repeating the chart as needed, anchored bottom-right like the chart.
+const VARIANTS = 4;
+
+type Sprite = { img: HTMLCanvasElement; ox: number; oy: number; w: number; h: number };
+
+function legPath(ctx: CanvasRenderingContext2D, hw: number, a: number) {
+  // Teardrop: round, plump top; tapering bottom tip.
+  ctx.beginPath();
+  ctx.moveTo(0, a);
+  ctx.bezierCurveTo(-hw * 1.15, a * 0.35, -hw * 1.2, -a * 0.95, 0, -a);
+  ctx.bezierCurveTo(hw * 1.2, -a * 0.95, hw * 1.15, a * 0.35, 0, a);
+  ctx.closePath();
+}
+
+function makeStitchSprite(base: RGB, sw: number, sh: number, scale: number, variant: number): Sprite {
+  const padX = sw * 0.45, padY = sh * 0.9;
+  const w = sw + padX * 2, h = sh + padY * 2;
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.ceil(w * scale));
+  c.height = Math.max(1, Math.ceil(h * scale));
+  const g = c.getContext("2d")!;
+  g.scale(scale, scale);
+  const shade = (variant - (VARIANTS - 1) / 2) * 0.035;
+  const col = shade > 0 ? mix(base, WHITE, shade) : mix(base, BLACK, -shade);
+  const hw = sw * 0.27;          // half-width of one leg
+  const a = sh * 0.78;            // half-length of one leg (legs overlap the next row)
+  const fine = sw >= 9;           // fibre detail only when stitches are big enough to see it
+  const cx = padX + sw / 2, cy = padY + sh / 2;
+
+  for (const leg of [-1, 1]) {
+    g.save();
+    g.translate(cx + leg * sw * 0.215, cy - sh * 0.02);
+    g.rotate(leg * 0.4);
+
+    // Soft shadow onto the stitch below / the valley between columns.
+    g.save();
+    g.shadowColor = "rgba(0,0,0,0.45)";
+    g.shadowBlur = Math.max(1, sw * 0.12) * scale;
+    g.shadowOffsetY = sh * 0.07 * scale;
+    legPath(g, hw, a);
+    g.fillStyle = css(mix(col, BLACK, 0.25));
+    g.fill();
+    g.restore();
+
+    // Body: rounded, lit from the upper left, darker where it curves away.
+    const body = g.createRadialGradient(-hw * 0.25, -a * 0.35, hw * 0.1, 0, 0, a * 1.05);
+    body.addColorStop(0, css(mix(col, WHITE, 0.2)));
+    body.addColorStop(0.45, css(col));
+    body.addColorStop(0.8, css(mix(col, BLACK, 0.22)));
+    body.addColorStop(1, css(mix(col, BLACK, 0.45)));
+    legPath(g, hw, a);
+    g.fillStyle = body;
+    g.fill();
+
+    // Along the leg: the bottom tip dives under the next stitch.
+    const along = g.createLinearGradient(0, -a, 0, a);
+    along.addColorStop(0, "rgba(255,255,255,0.06)");
+    along.addColorStop(0.5, "rgba(255,255,255,0)");
+    along.addColorStop(0.85, "rgba(0,0,0,0.12)");
+    along.addColorStop(1, "rgba(0,0,0,0.35)");
+    g.fillStyle = along;
+    g.fill();
+
+    // Fibres: many short soft strokes running along the leg, clipped to it.
+    if (fine) {
+      g.save();
+      legPath(g, hw, a);
+      g.clip();
+      g.lineCap = "round";
+      const n = Math.round(sw * 3.2);
+      for (let k = 0; k < n; k++) {
+        const seed = variant * 7717 + k * 131 + (leg > 0 ? 40000 : 0);
+        const px = (rand(seed) * 2 - 1) * hw * 0.95;
+        const py = (rand(seed + 1) * 2 - 1) * a * 0.95;
+        const ang = (rand(seed + 2) - 0.5) * 0.5 + px / hw * 0.25; // fan out slightly, like a twisted yarn
+        const len = a * (0.18 + rand(seed + 3) * 0.4);
+        const dx = Math.sin(ang) * len, dy = Math.cos(ang) * len;
+        g.beginPath();
+        g.moveTo(px - dx / 2, py - dy / 2);
+        g.quadraticCurveTo(px + dy * 0.08, py, px + dx / 2, py + dy / 2);
+        g.lineWidth = Math.max(0.3, sw * (0.01 + rand(seed + 4) * 0.018));
+        const light = rand(seed + 5) < 0.72;
+        g.strokeStyle = light ? `rgba(255,255,255,${0.06 + rand(seed + 6) * 0.14})` : `rgba(0,0,0,${0.05 + rand(seed + 6) * 0.08})`;
+        g.stroke();
+      }
+      g.restore();
+    }
+
+    // Fuzzy halo: short stray fibres around the edge.
+    if (fine) {
+      g.lineCap = "round";
+      const n = Math.round(10 + sw * 0.3);
+      for (let k = 0; k < n; k++) {
+        const t = rand(variant * 313 + k * 7 + (leg > 0 ? 900 : 0));
+        const side = k % 2 ? 1 : -1;
+        const y = (t * 1.6 - 0.8) * a;
+        const x = side * hw * (0.95 - Math.abs(y / a) * 0.35);
+        const len = sw * (0.03 + rand(k * 13 + variant) * 0.06);
+        g.beginPath();
+        g.moveTo(x, y);
+        g.lineTo(x + side * len, y - len * (0.4 + t * 0.6));
+        g.lineWidth = Math.max(0.3, sw * 0.012);
+        g.strokeStyle = css(mix(col, WHITE, 0.25)).replace("rgb", "rgba").replace(")", ",0.22)");
+        g.stroke();
+      }
+    }
+    g.restore();
+  }
+  return { img: c, ox: cx, oy: cy, w, h };
+}
+
 export function drawKnit(
   ctx: CanvasRenderingContext2D, ch: Chart, colours: string[], tweed: boolean[],
-  cols: number, rows: number, sw: number, sh: number, areaW = cols * sw, areaH = rows * sh,
+  cols: number, rows: number, sw: number, sh: number, areaW = cols * sw, areaH = rows * sh, scale = 1,
 ) {
   const { width: w, height: h, cells } = ch;
-  // Anchored bottom-right, like the chart is read: any cut-off partial repeat lands at the top/left.
   const offX = areaW - cols * sw, offY = areaH - rows * sh;
   const rgb = colours.map(hexToRgb);
-  ctx.fillStyle = css(mix(rgb[0] ?? WHITE, BLACK, 0.55));
+  const sprites = rgb.map((c) => Array.from({ length: VARIANTS }, (_, v) => makeStitchSprite(c, sw, sh, scale, v)));
+  const colourAt = (cx: number, ry: number) => cells[(h - 1 - ((rows - 1 - ry) % h)) * w + (w - 1 - ((cols - 1 - cx) % w))];
+
+  // Valleys: the deep shadow between legs, in each stitch's own colour.
+  ctx.fillStyle = css(mix(rgb[0] ?? WHITE, BLACK, 0.6));
   ctx.fillRect(0, 0, areaW, areaH);
-  for (let ry = 0; ry < rows; ry++) {
+  for (let ry = 0; ry < rows; ry++)
     for (let cx = 0; cx < cols; cx++) {
-      const idx = cells[(h - 1 - ((rows - 1 - ry) % h)) * w + (w - 1 - ((cols - 1 - cx) % w))];
-      const base = rgb[idx] ?? WHITE;
-      const seed = ry * 7919 + cx;
-      const jitter = (rand(seed) - 0.5) * 0.12;
-      const col = jitter > 0 ? mix(base, WHITE, jitter) : mix(base, BLACK, -jitter);
+      ctx.fillStyle = css(mix(rgb[colourAt(cx, ry)] ?? WHITE, BLACK, 0.6));
+      const x = Math.floor(offX + cx * sw), y = Math.floor(offY + ry * sh);
+      ctx.fillRect(x, y, Math.ceil(offX + (cx + 1) * sw) - x, Math.ceil(offY + (ry + 1) * sh) - y);
+    }
+
+  // Legs, one row at a time, top to bottom (the extra row above fills the top edge).
+  for (let ry = -1; ry < rows; ry++) {
+    for (let cx = 0; cx < cols; cx++) {
+      const idx = colourAt(cx, ry);
+      const seed = (ry + 1) * 7919 + cx;
+      const sp = sprites[idx]?.[Math.floor(rand(seed) * VARIANTS)];
+      if (!sp) continue;
+      const jx = (rand(seed + 5e5) - 0.5) * sw * 0.04, jy = (rand(seed + 6e5) - 0.5) * sh * 0.04;
       const x0 = offX + cx * sw, y0 = offY + ry * sh;
-      for (const leg of [-1, 1]) {
-        ctx.save();
-        ctx.translate(x0 + sw / 2 + leg * sw * 0.22, y0 + sh * 0.5);
-        ctx.rotate(leg * 0.52);
-        const g = ctx.createLinearGradient(-sw * 0.26, 0, sw * 0.26, 0);
-        g.addColorStop(0, css(mix(col, BLACK, 0.32)));
-        g.addColorStop(0.45, css(mix(col, WHITE, 0.14)));
-        g.addColorStop(1, css(mix(col, BLACK, 0.22)));
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, sw * 0.27, sh * 0.64, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+      ctx.drawImage(sp.img, x0 + sw / 2 - sp.ox + jx, y0 + sh / 2 - sp.oy + jy, sp.w, sp.h);
       if (tweed[idx] && rand(seed + 1e6) < 0.09) {
         ctx.fillStyle = css(FLECKS[Math.floor(rand(seed + 2e6) * FLECKS.length)]);
         ctx.beginPath();
-        ctx.arc(x0 + sw * (0.25 + rand(seed + 3e6) * 0.5), y0 + sh * (0.3 + rand(seed + 4e6) * 0.4), Math.max(0.8, sw * 0.07), 0, Math.PI * 2);
+        ctx.arc(x0 + sw * (0.25 + rand(seed + 3e6) * 0.5), y0 + sh * (0.3 + rand(seed + 4e6) * 0.4), Math.max(0.8, sw * 0.05), 0, Math.PI * 2);
         ctx.fill();
       }
     }
   }
+
+  // Gentle overall light falloff so the swatch reads as fabric, not a flat print.
+  const v = ctx.createRadialGradient(areaW * 0.4, areaH * 0.35, Math.min(areaW, areaH) * 0.2, areaW / 2, areaH / 2, Math.max(areaW, areaH) * 0.8);
+  v.addColorStop(0, "rgba(255,255,255,0.04)");
+  v.addColorStop(1, "rgba(0,0,0,0.12)");
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, areaW, areaH);
 }
