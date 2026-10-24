@@ -21,7 +21,8 @@ type Tool = "paint" | "fill" | "pick";
 
 const DRAFT_KEY = "studio-draft-v1";
 const GUTTER_R = 28, GUTTER_B = 20;
-const PREVIEW_MIN_H = 220, PREVIEW_MAX_H = 460;
+const PREVIEW_MIN_H = 220, PREVIEW_MAX_H = 460; // phones/tablets; on desktop the preview fills its slot
+const DESKTOP = "(min-width: 1024px)";
 const PRESETS = { hat: [52, 22], scarf: [25, 160], sweater: [100, 60] } as const;
 const money = (n: number) => n.toLocaleString("en-US") + "₮";
 const cm = (n: number) => (Math.round(n * 10) / 10).toString();
@@ -124,6 +125,11 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   }, [chart, palette, name, designId]);
 
   useEffect(() => { setSaveState((s) => (s === "saved" ? "idle" : s)); setAddState("idle"); }, [chart, palette]);
+  useEffect(() => {
+    if (!notice) return;
+    const id = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(id);
+  }, [notice]);
 
   // ---------- Derived ----------
   const colours = palette.map((id) => byId.get(id)?.hex ?? "#cccccc");
@@ -136,14 +142,23 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const chartWrap = useRef<HTMLDivElement>(null);
   const chartCanvas = useRef<HTMLCanvasElement>(null);
   const [wrapW, setWrapW] = useState(640);
+  const [wrapH, setWrapH] = useState(620);
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP);
+    const on = () => setDesktop(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   useEffect(() => {
     const el = chartWrap.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setWrapW(e.contentRect.width));
+    const ro = new ResizeObserver(([e]) => { setWrapW(e.contentRect.width); setWrapH(e.contentRect.height); });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const cell = Math.max(5, Math.min(28, Math.floor((wrapW - GUTTER_R) / chart.width), Math.floor(620 / chart.height)));
+  const cell = Math.max(5, Math.min(28, Math.floor((wrapW - GUTTER_R) / chart.width), Math.floor(((desktop ? wrapH : 620) - GUTTER_B) / chart.height)));
 
   useEffect(() => {
     const c = chartCanvas.current;
@@ -257,10 +272,11 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const previewWrap = useRef<HTMLDivElement>(null);
   const previewCanvas = useRef<HTMLCanvasElement>(null);
   const [previewW, setPreviewW] = useState(400);
+  const [previewH, setPreviewH] = useState(300);
   useEffect(() => {
     const el = previewWrap.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setPreviewW(e.contentRect.width));
+    const ro = new ResizeObserver(([e]) => { setPreviewW(e.contentRect.width); setPreviewH(e.contentRect.height); });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -273,7 +289,9 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
       const W = Math.max(1, Math.floor(previewW));
       const sw = Math.max(4, Math.min(44, W / (chart.width * tiles)));
       const sh = (sw * gauge.stitches) / gauge.rows;
-      const H = Math.round(Math.min(PREVIEW_MAX_H, Math.max(PREVIEW_MIN_H, chart.height * tiles * sh)));
+      const H = desktop
+        ? Math.max(1, Math.floor(previewH))
+        : Math.round(Math.min(PREVIEW_MAX_H, Math.max(PREVIEW_MIN_H, chart.height * tiles * sh)));
       const cols = Math.ceil(W / sw), rows = Math.ceil(H / sh);
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       c.width = W * dpr;
@@ -285,7 +303,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
       drawKnit(ctx, chart, colours, tweed, cols, rows, sw, sh, W, H);
     }, 120);
     return () => clearTimeout(id);
-  }, [chart, colours.join(), tweed.join(), tiles, previewW, gauge.stitches, gauge.rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chart, colours.join(), tweed.join(), tiles, previewW, previewH, desktop, gauge.stitches, gauge.rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- Yarn estimate ----------
   const metres = estimateMetres(chart, palette.length, gauge, project.w, project.h);
@@ -389,22 +407,22 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   }, [picker]);
 
   const iconBtn = (active: boolean) =>
-    `flex h-11 w-full items-center justify-center rounded-xl border transition-colors disabled:opacity-35 ${active ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-cream"}`;
+    `flex h-11 w-full items-center justify-center rounded-xl border lg:h-9 lg:rounded-lg transition-colors disabled:opacity-35 ${active ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-cream"}`;
   const chipBtn = (active: boolean) =>
-    `inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-semibold transition-colors ${active ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-cream"}`;
-  const panelH = "text-[13px] font-semibold uppercase tracking-[0.08em] text-muted";
+    `inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-semibold transition-colors lg:min-h-8 lg:px-3 lg:text-[13px] ${active ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-cream"}`;
+  const panelH = "text-[11px] font-semibold uppercase tracking-[0.08em] text-muted";
   const ico = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   const cmW = (chart.width * 10) / gauge.stitches, cmH = (chart.height * 10) / gauge.rows;
 
   return (
-    <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[248px_minmax(0,1fr)_300px] lg:items-start">
+    <div className="grid grid-cols-1 gap-8 lg:h-[calc(100dvh-96px)] lg:min-h-[600px] lg:grid-cols-[232px_minmax(0,1fr)_280px] lg:gap-6 lg:pb-4">
       {notice && (
-        <p role="status" className="rounded-xl bg-cream px-4 py-3 text-sm font-semibold lg:col-span-3">{notice}</p>
+        <p role="status" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-lg">{notice}</p>
       )}
 
       {/* ---------- Left: tools, colours, size ---------- */}
-      <aside aria-label={t.tools} className="flex flex-col gap-6 rounded-2xl border border-line p-4">
-        <section aria-labelledby="tools-h" className="flex flex-col gap-2">
+      <aside aria-label={t.tools} className="flex flex-col gap-4 rounded-2xl border border-line p-3 lg:min-h-0 lg:overflow-y-auto">
+        <section aria-labelledby="tools-h" className="flex flex-col gap-1.5">
           <h2 id="tools-h" className={panelH}>{t.tools}</h2>
           <div role="toolbar" aria-label={t.tools} className="grid grid-cols-4 gap-1.5">
             <button type="button" aria-pressed={tool === "paint"} onClick={() => setTool("paint")} className={iconBtn(tool === "paint")} aria-label={t.paint} title={`${t.paint} (B)`}>
@@ -428,28 +446,28 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             <button type="button" onClick={() => edit((ch) => shift(ch, 0, -1))} className={iconBtn(false)} aria-label={`${t.shift}: ${t.up}`} title={`${t.shift}: ${t.up}`}>↑</button>
             <button type="button" onClick={() => edit((ch) => shift(ch, 0, 1))} className={iconBtn(false)} aria-label={`${t.shift}: ${t.down}`} title={`${t.shift}: ${t.down}`}>↓</button>
           </div>
-          <button type="button" onClick={() => edit((ch) => new Uint8Array(ch.cells.length))} className="min-h-11 rounded-xl border border-line bg-white text-sm font-semibold hover:bg-cream">{t.clear}</button>
+          <button type="button" onClick={() => edit((ch) => new Uint8Array(ch.cells.length))} className="min-h-11 rounded-xl border border-line bg-white text-sm font-semibold hover:bg-cream lg:min-h-9 lg:rounded-lg">{t.clear}</button>
         </section>
 
-        <section aria-labelledby="pal-h" className="flex flex-col gap-2">
+        <section aria-labelledby="pal-h" className="flex flex-col gap-1.5">
           <h2 id="pal-h" className={panelH}>{t.palette}</h2>
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col gap-1">
             {palette.map((id, i) => {
               const y = byId.get(id);
               const active = i === safeCurrent;
               return (
-                <li key={i} className={`flex items-center gap-2 rounded-xl border p-1.5 ${active ? "border-ink bg-cream" : "border-line"}`}>
+                <li key={i} className={`flex items-center gap-2 rounded-xl border p-1 ${active ? "border-ink bg-cream" : "border-line"}`}>
                   <button
                     type="button"
                     onClick={() => { setCurrent(i); if (tool === "pick") setTool("paint"); }}
                     aria-pressed={active}
                     aria-label={`${i + 1}. ${y?.colour ?? ""}`}
-                    className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-black/10 text-xs font-bold"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-black/10 text-xs font-bold lg:size-8"
                     style={{ background: colours[i], color: y && luminanceDark(colours[i]) ? "#fff" : "#141414" }}
                   >
                     {i + 1}
                   </button>
-                  <button type="button" onClick={() => setPicker({ slot: i })} className="group flex min-h-10 min-w-0 flex-1 items-center gap-1 text-left" aria-label={`${t.change}: ${y?.colour ?? ""}`} title={t.change}>
+                  <button type="button" onClick={() => setPicker({ slot: i })} className="group flex min-h-10 min-w-0 lg:min-h-8 flex-1 items-center gap-1 text-left" aria-label={`${t.change}: ${y?.colour ?? ""}`} title={t.change}>
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-sm font-semibold group-hover:underline">{y?.colour}</span>
                       <span className="truncate text-[11px] text-muted">{i === 0 ? `${t.mainColour} · ` : ""}{y?.line}</span>
@@ -457,35 +475,34 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z" /></svg>
                   </button>
                   {palette.length > 2 && (
-                    <button type="button" onClick={() => removeSlot(i)} className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-white" aria-label={`${t.remove}: ${y?.colour ?? ""}`}>×</button>
+                    <button type="button" onClick={() => removeSlot(i)} className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-white lg:size-7" aria-label={`${t.remove}: ${y?.colour ?? ""}`}>×</button>
                   )}
                 </li>
               );
             })}
           </ul>
           {palette.length < MAX_COLOURS && (
-            <button type="button" onClick={() => setPicker({ slot: null })} className="min-h-11 rounded-xl border border-dashed border-[#CFC7BA] text-sm font-semibold hover:bg-cream">+ {t.addColour}</button>
+            <button type="button" onClick={() => setPicker({ slot: null })} className="min-h-11 rounded-xl border border-dashed border-[#CFC7BA] text-sm font-semibold hover:bg-cream lg:min-h-9 lg:rounded-lg">+ {t.addColour}</button>
           )}
         </section>
 
-        <section aria-labelledby="size-h" className="flex flex-col gap-2">
+        <section aria-labelledby="size-h" className="flex flex-col gap-1.5">
           <h2 id="size-h" className={panelH}>{t.size}</h2>
-          <form className="flex flex-col gap-2" onSubmit={(e) => { e.preventDefault(); applySize(); }}>
-            <div className="flex items-center gap-1.5">
-              <input type="number" min={MIN_SIZE} max={MAX_SIZE} value={sizeInput.w} onChange={(e) => setSizeInput((s) => ({ ...s, w: e.target.value }))} className="field w-full px-2" aria-label={`${t.size}: ${t.stitchesShort}`} />
-              <span className="shrink-0 text-xs text-muted">{t.stitchesShort} ×</span>
-              <input type="number" min={MIN_SIZE} max={MAX_SIZE} value={sizeInput.h} onChange={(e) => setSizeInput((s) => ({ ...s, h: e.target.value }))} className="field w-full px-2" aria-label={`${t.size}: ${t.rowsShort}`} />
-              <span className="shrink-0 text-xs text-muted">{t.rowsShort}</span>
+          <form className="flex items-center gap-1.5" onSubmit={(e) => { e.preventDefault(); applySize(); }}>
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              <input type="number" min={MIN_SIZE} max={MAX_SIZE} value={sizeInput.w} onChange={(e) => setSizeInput((s) => ({ ...s, w: e.target.value }))} className="field w-full min-w-0 px-1.5 text-center lg:min-h-9" aria-label={`${t.size}: ${t.stitchesShort}`} />
+              <span className="shrink-0 text-xs text-muted">×</span>
+              <input type="number" min={MIN_SIZE} max={MAX_SIZE} value={sizeInput.h} onChange={(e) => setSizeInput((s) => ({ ...s, h: e.target.value }))} className="field w-full min-w-0 px-1.5 text-center lg:min-h-9" aria-label={`${t.size}: ${t.rowsShort}`} />
             </div>
-            <button className="btn-outline w-full">{t.apply}</button>
+            <button className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-ink px-3 text-sm font-semibold text-white hover:opacity-85 lg:min-h-9">{t.apply}</button>
           </form>
         </section>
 
-        <section aria-labelledby="tpl-h" className="flex flex-col gap-2">
+        <section aria-labelledby="tpl-h" className="flex flex-col gap-1.5">
           <h2 id="tpl-h" className={panelH}>{t.templates}</h2>
           <div className="grid grid-cols-2 gap-1.5">
             {(["ulzii", "diamonds", "zigzag", "blank"] as TemplateKind[]).map((k) => (
-              <button key={k} type="button" onClick={() => applyTemplate(k)} className="min-h-11 rounded-xl border border-line bg-white px-2 text-sm font-semibold hover:bg-cream">
+              <button key={k} type="button" onClick={() => applyTemplate(k)} className="min-h-11 rounded-xl border border-line bg-white px-2 text-sm font-semibold hover:bg-cream lg:min-h-9 lg:rounded-lg">
                 {{ ulzii: t.tplUlzii, diamonds: t.tplDiamonds, zigzag: t.tplZigzag, blank: t.tplBlank }[k]}
               </button>
             ))}
@@ -494,13 +511,13 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
       </aside>
 
       {/* ---------- Middle: chart, then the knitted preview ---------- */}
-      <div className="flex min-w-0 flex-col gap-10">
-        <section aria-labelledby="chart-h" className="flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-10 lg:min-h-0 lg:gap-4">
+        <section aria-labelledby="chart-h" className="flex flex-col gap-2 lg:min-h-0 lg:flex-[3]">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="chart-h" className="text-2xl font-semibold tracking-tight">{t.chart}</h2>
+            <h2 id="chart-h" className="text-lg font-semibold tracking-tight">{t.chart}</h2>
             <span className="text-sm text-muted">{t.chartSize(chart.width, chart.height, cm(cmW), cm(cmH))}</span>
           </div>
-          <div ref={chartWrap} className="w-full min-w-0 overflow-x-auto">
+          <div ref={chartWrap} className="w-full min-w-0 overflow-x-auto lg:min-h-0 lg:flex-1 lg:basis-0 lg:overflow-hidden">
             <canvas
               ref={chartCanvas}
               role="img"
@@ -512,31 +529,31 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
               onPointerCancel={onUp}
             />
           </div>
-          <p className="text-sm text-muted">{t.chartHelp}</p>
+          <p className="text-xs text-muted lg:truncate" title={t.chartHelp}>{t.chartHelp}</p>
         </section>
 
-        <section aria-labelledby="prev-h" className="flex flex-col gap-3">
+        <section aria-labelledby="prev-h" className="flex flex-col gap-2 lg:min-h-0 lg:flex-[2]">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="prev-h" className="text-2xl font-semibold tracking-tight">{t.preview}</h2>
+            <h2 id="prev-h" className="text-lg font-semibold tracking-tight">{t.preview}</h2>
             <div role="group" aria-label={t.zoom} className="inline-flex rounded-full border border-line p-1">
               {[1, 2, 3].map((n) => (
-                <button key={n} type="button" aria-pressed={tiles === n} onClick={() => setTiles(n)} className={`min-h-9 min-w-10 rounded-full px-3 text-sm font-semibold ${tiles === n ? "bg-ink text-white" : ""}`}>
+                <button key={n} type="button" aria-pressed={tiles === n} onClick={() => setTiles(n)} className={`min-h-9 min-w-10 rounded-full px-3 text-sm font-semibold lg:min-h-7 ${tiles === n ? "bg-ink text-white" : ""}`}>
                   {n}×{n}
                 </button>
               ))}
             </div>
           </div>
-          <div ref={previewWrap} className="w-full overflow-hidden rounded-2xl bg-tile">
-            <canvas ref={previewCanvas} role="img" aria-label={t.preview} className="block" />
+          <div ref={previewWrap} className="relative w-full overflow-hidden rounded-2xl bg-tile lg:min-h-0 lg:flex-1 lg:basis-0">
+            <canvas ref={previewCanvas} role="img" aria-label={t.preview} className="block lg:absolute lg:inset-0" />
           </div>
           <p className="text-xs text-muted">{gaugeYarn ? `${t.gaugeFrom(gaugeYarn.line)} · ` : ""}{gauge.stitches} × {gauge.rows} / 10 cm</p>
         </section>
       </div>
 
       {/* ---------- Right: yarn calculator, save, download ---------- */}
-      <aside className="flex min-w-0 flex-col gap-6">
-        <section aria-labelledby="est-h" className="flex flex-col gap-4 rounded-2xl bg-cream p-5">
-          <h2 id="est-h" className="text-xl font-semibold tracking-tight">{t.yarnsNeeded}</h2>
+      <aside className="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:overflow-y-auto">
+        <section aria-labelledby="est-h" className="flex flex-col gap-3 rounded-2xl bg-cream p-4">
+          <h2 id="est-h" className="text-lg font-semibold tracking-tight">{t.yarnsNeeded}</h2>
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-semibold text-[#4A4A4A]">{t.projectSize}</span>
             <div className="flex flex-wrap gap-1.5">
@@ -551,17 +568,17 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <label className="label">{t.widthCm}
-                <input type="number" min={1} max={400} value={project.w} onChange={(e) => setProject((p) => ({ ...p, w: Math.max(0, Number(e.target.value) || 0) }))} className="field" />
+                <input type="number" min={1} max={400} value={project.w} onChange={(e) => setProject((p) => ({ ...p, w: Math.max(0, Number(e.target.value) || 0) }))} className="field lg:min-h-9" />
               </label>
               <label className="label">{t.heightCm}
-                <input type="number" min={1} max={400} value={project.h} onChange={(e) => setProject((p) => ({ ...p, h: Math.max(0, Number(e.target.value) || 0) }))} className="field" />
+                <input type="number" min={1} max={400} value={project.h} onChange={(e) => setProject((p) => ({ ...p, h: Math.max(0, Number(e.target.value) || 0) }))} className="field lg:min-h-9" />
               </label>
             </div>
           </div>
 
           <ul className="flex flex-col divide-y divide-dashed divide-[#D9D1C3]">
             {lines.map((l) => (
-              <li key={l.id} className="flex items-center gap-3 py-3">
+              <li key={l.id} className="flex items-center gap-3 py-2">
                 <span className="size-6 shrink-0 rounded-full border border-black/10" style={{ background: l.yarn?.hex }} aria-hidden="true" />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <Link href={`/${lang}/p/${l.yarn?.slug}`} className="truncate text-sm font-semibold hover:underline">{l.yarn?.colour}</Link>
@@ -574,32 +591,34 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
               </li>
             ))}
           </ul>
-          <div className="flex items-baseline justify-between border-t border-ink pt-3 text-lg font-bold">
+          <div className="flex items-baseline justify-between border-t border-ink pt-2 text-base font-bold">
             <span>{t.total}</span>
             <span className="tabular-nums">{money(totalPrice)}</span>
           </div>
-          <p className="text-xs text-muted">{t.estimateNote}</p>
+          <p className="text-[11px] leading-snug text-muted">{t.estimateNote}</p>
           {addState === "added" ? (
             <p role="status" className="flex flex-wrap items-center gap-3 text-sm font-semibold text-ok">
               ✓ {t.added} <Link href={`/${lang}/basket`} className="text-ink underline underline-offset-4">{t.viewBasket}</Link>
             </p>
           ) : (
-            <button type="button" onClick={addAll} disabled={!canAddAll || addState === "adding"} className="btn">
+            <button type="button" onClick={addAll} disabled={!canAddAll || addState === "adding"} className="btn lg:min-h-9">
               {addState === "adding" ? "…" : t.addAll}
             </button>
           )}
         </section>
 
-        <section aria-label={t.save} className="flex flex-col gap-3">
+        <section aria-label={t.save} className="flex flex-col gap-2">
           <label className="label" htmlFor="st-name">{t.name}
-            <input id="st-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} placeholder={t.namePh} className="field" />
+            <input id="st-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} placeholder={t.namePh} className="field lg:min-h-9" />
           </label>
-          <button type="button" onClick={save} disabled={saveState === "saving"} className="btn w-full">
+          <button type="button" onClick={save} disabled={saveState === "saving"} className="btn w-full lg:min-h-9">
             {saveState === "saving" ? t.saving : saveState === "saved" ? `✓ ${t.saved}` : loggedIn ? t.save : t.loginToSave}
           </button>
           {saveState === "error" && <p role="alert" className="text-sm font-semibold text-accent">{t.invalid}</p>}
-          <button type="button" onClick={download} className="btn-outline w-full">{t.downloadChart}</button>
-          <button type="button" onClick={downloadPreview} className="btn-outline w-full">{t.downloadPreview}</button>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={download} className="btn-outline px-2 text-[13px] lg:min-h-9" title={t.downloadChart}>↓ {t.chart}</button>
+            <button type="button" onClick={downloadPreview} className="btn-outline px-2 text-[13px] lg:min-h-9" title={t.downloadPreview}>↓ {t.previewShort}</button>
+          </div>
           <div className="flex flex-wrap gap-x-5">
             {designId && (
               <Link href={`/${lang}/studio?y=${palette[1] ?? ""}`} onClick={() => { try { localStorage.removeItem(DRAFT_KEY); } catch {} }} className="btn-ghost">{t.newDesign}</Link>

@@ -69,9 +69,8 @@ export default async function StudioPage({
   }
 
   return (
-    <div className="pt-14">
-      <h1 className="text-[clamp(44px,7.2vw,104px)] font-semibold leading-[1.02] tracking-[-0.035em]">{t.title}</h1>
-      <p className="mt-4 max-w-2xl text-lg text-[#3E3E3E]">{t.intro}</p>
+    <div className="pt-2">
+      <h1 className="sr-only">{t.title}</h1>
       {yarns.length < 2 ? (
         <p className="mt-10 text-muted">—</p>
       ) : (
