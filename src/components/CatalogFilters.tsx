@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { PICK_COLORS, encodePicks, type Pick } from "@/lib/picks";
+import { encodePicks, type Pick } from "@/lib/picks";
 
 type Dim = { key: string; name: string; options: { value: string; label: string }[] };
 
@@ -55,7 +55,7 @@ export function CatalogFilters(props: {
         {props.dims.map((d) => {
           const idx = props.picks.findIndex((p) => p.dim === d.key);
           const pick = idx === -1 ? null : props.picks[idx];
-          const color = idx === -1 ? null : PICK_COLORS[idx % PICK_COLORS.length];
+          const color = idx === -1 ? null : "#141414"; // chosen pills are filled black
           const label = pick ? `${d.name}: ${d.options.find((o) => o.value === pick.value)?.label ?? pick.value}` : d.name;
           const isOpen = open === d.key;
           return (

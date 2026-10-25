@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { NEEDLE_GROUPS, money, type Lang, type NeedleGroup } from "@/config";
 import { getDict } from "@/lib/i18n";
 import { listBrands, listMaterials, listProducts, productName, colorName, needleLabel, isOnSale, effectivePrice } from "@/lib/products";
 import { ProductImage } from "@/components/ProductImage";
 import { CatalogFilters } from "@/components/CatalogFilters";
-import { PICK_COLORS, type Pick } from "@/lib/picks";
+import { pickScale, type Pick } from "@/lib/picks";
 
 const DIMS = ["brand", "material", "needle"] as const;
 
@@ -69,10 +69,12 @@ export default async function Catalog({
         {picks.length === 0
           ? category === "yarn" ? t.catalog.allYarn : t.catalog.allSupplies
           : picks.map((p, i) => (
-              <span key={p.dim}>
-                <span className="whitespace-nowrap" style={{ color: PICK_COLORS[i % PICK_COLORS.length] }}>{labelOf(p)}</span>
-                {i < picks.length - 1 && ", "}
-              </span>
+              <Fragment key={p.dim}>
+                <span className="whitespace-nowrap" style={{ fontSize: `${pickScale(i)}em` }}>
+                  {labelOf(p)}{i < picks.length - 1 && ","}
+                </span>
+                {i < picks.length - 1 && " "}
+              </Fragment>
             ))}
       </h1>
 
