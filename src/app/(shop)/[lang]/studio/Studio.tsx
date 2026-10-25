@@ -358,6 +358,28 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
     a.click();
   };
 
+  const [pdfState, setPdfState] = useState<"idle" | "making">("idle");
+  const downloadPattern = async () => {
+    setPdfState("making");
+    try {
+      const { downloadPatternPdf } = await import("@/lib/patternPdf");
+      const presetKey = (Object.keys(PRESETS) as (keyof typeof PRESETS)[]).find((k) => PRESETS[k][0] === project.w && PRESETS[k][1] === project.h);
+      await downloadPatternPdf({
+        lang, name, chart, colours, tweed,
+        slotNames: palette.map((id) => byId.get(id)?.colour ?? ""),
+        yarns: lines.map((l) => ({
+          roles: palette.flatMap((id, i) => (id === l.id ? [i === 0 ? "MC" : `CC${i}`] : [])),
+          line: l.yarn?.line ?? "", colour: l.yarn?.colour ?? "", hex: l.yarn?.hex ?? "#ccc", needle: l.yarn?.needle ?? "",
+          metres: l.metres, skeins: l.skeins, skeinM: l.yarn?.lengthM ?? null,
+        })),
+        gauge, gaugeYarn: gaugeYarn?.line ?? null,
+        project: { w: project.w, h: project.h, label: presetKey ? t.presets[presetKey] : null },
+      });
+    } finally {
+      setPdfState("idle");
+    }
+  };
+
   const download = () => {
     const c = document.createElement("canvas");
     const size = 18;
@@ -618,10 +640,15 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
             {saveState === "saving" ? t.saving : saveState === "saved" ? `✓ ${t.saved}` : loggedIn ? t.save : t.loginToSave}
           </button>
           {saveState === "error" && <p role="alert" className="text-sm font-semibold text-accent">{t.invalid}</p>}
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={download} className="btn-outline px-2 text-[13px] lg:min-h-9" title={t.downloadChart}>↓ {t.chart}</button>
-            <button type="button" onClick={downloadPreview} className="btn-outline px-2 text-[13px] lg:min-h-9" title={t.downloadPreview}>↓ {t.previewShort}</button>
-          </div>
+          <button type="button" onClick={downloadPattern} disabled={pdfState === "making"} className="btn-outline w-full lg:min-h-9">
+            {pdfState === "making" ? t.makingPattern : `↓ ${t.downloadPattern}`}
+          </button>
+          <p className="text-xs text-muted">
+            {t.patternNote}{" "}
+            <button type="button" onClick={download} className="underline underline-offset-2 hover:text-ink">{t.chart} PNG</button>
+            {" · "}
+            <button type="button" onClick={downloadPreview} className="underline underline-offset-2 hover:text-ink">{t.previewShort} PNG</button>
+          </p>
           <div className="flex flex-wrap gap-x-5">
             {designId && (
               <Link href={`/${lang}/studio?y=${palette[1] ?? ""}`} onClick={() => { try { localStorage.removeItem(DRAFT_KEY); } catch {} }} className="btn-ghost">{t.newDesign}</Link>
