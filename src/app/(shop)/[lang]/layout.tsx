@@ -36,9 +36,8 @@ export default async function ShopLayout({ children, params }: { children: React
     <html lang={lang}>
             <body className="flex min-h-screen flex-col">
         <header className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-x-11 gap-y-1 px-6 py-4 md:py-5">
-          <Link href={`/${lang}`} className="order-1 flex items-center gap-2.5" aria-label={BRAND.name[lang]}>
+          <Link href={`/${lang}`} className="order-1 -my-1 flex items-center">
             <Logo />
-            <span className="text-xl font-bold tracking-tight">{BRAND.name[lang]}</span>
           </Link>
           <nav aria-label="Main" className="order-3 -mx-6 flex w-[calc(100%+3rem)] gap-x-6 overflow-x-auto whitespace-nowrap px-6 text-sm font-semibold md:order-2 md:mx-0 md:w-auto md:flex-1 md:justify-end md:gap-x-8 md:px-0">
             <Link href={`/${lang}`} className="py-3 hover:text-muted">{t.nav.yarn}</Link>
@@ -60,19 +59,8 @@ export default async function ShopLayout({ children, params }: { children: React
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1320px] flex-1 px-6">{children}</main>
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 pb-20">{children}</main>
 
-        <footer className="mx-auto flex w-full max-w-[1320px] flex-wrap items-end justify-between gap-x-8 gap-y-4 px-6 pb-12 pt-24 text-[13px] text-muted">
-          <div className="flex flex-col gap-3">
-            <span className="text-[clamp(48px,7vw,96px)] font-bold leading-none tracking-[-0.04em] text-ink">{BRAND.name[lang]}</span>
-            <span>{t.footer.note}</span>
-          </div>
-          <div className="flex flex-wrap gap-x-7 gap-y-2">
-            <span>{t.footer.delivery}</span>
-            <span>{t.footer.pay}</span>
-            <span>{t.footer.contact}</span>
-          </div>
-        </footer>
       </body>
     </html>
   );

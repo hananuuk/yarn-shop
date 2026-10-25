@@ -1,7 +1,7 @@
 // Everything brand- and business-specific lives here so it can be changed in one place.
 
 export const BRAND = {
-  name: { mn: "утас", en: "utas" }, // placeholder shop name
+  name: { mn: "loop", en: "loop" }, // shop name; logo in public/brand
   colors: {
     ink: "#141414",
     accent: "#C8321D", // second title part, sale prices

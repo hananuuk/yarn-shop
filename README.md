@@ -1,4 +1,4 @@
-# утас / utas: yarn shop (Milestone 1)
+# loop: yarn shop
 
 Bilingual (Mongolian / English) yarn shop with an admin panel.
 Name, logo, brands, products and prices are **placeholders**.

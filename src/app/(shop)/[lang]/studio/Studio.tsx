@@ -416,7 +416,7 @@ export function Studio({ lang, yarns, start, loggedIn, preferNewDraft }: {
   const cmW = (chart.width * 10) / gauge.stitches, cmH = (chart.height * 10) / gauge.rows;
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[232px_minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[minmax(max(560px,calc(100dvh-96px)),auto)_auto] lg:gap-x-6 lg:gap-y-12">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[232px_minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[minmax(max(560px,calc(100dvh-124px)),auto)_auto] lg:gap-x-6 lg:gap-y-12">
       {notice && (
         <p role="status" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-lg">{notice}</p>
       )}

@@ -15,7 +15,7 @@ function previewLocked(req: NextRequest) {
   }
   return new NextResponse("Password required", {
     status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="utas preview", charset="UTF-8"' },
+    headers: { "WWW-Authenticate": 'Basic realm="loop preview", charset="UTF-8"' },
   });
 }
 

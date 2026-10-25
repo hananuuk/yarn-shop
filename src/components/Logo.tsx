@@ -1,10 +1,8 @@
-// Placeholder mark: a yarn ball. Replace with the real logo when the brand is decided.
-export function Logo({ size = 38 }: { size?: number }) {
+// The loop logo: a caterpillar in a bobble hat on a leaf, with "loop" nibbled out of it.
+// Header version without the "yarn shop" line; the full logo is public/brand/loop-logo.png.
+export function Logo({ className = "" }: { className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-      <circle cx="20" cy="20" r="15" />
-      <path d="M8 14c8 2 17 8 23 17M6 21c8 1 15 5 19 12M13 7c6 4 15 12 20 20" />
-      <path d="M31 31c3 2 5 3 7 2" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/brand/loop-mark-h144.png" alt="loop" width={211} height={144} className={`h-14 w-auto md:h-[72px] ${className}`} />
   );
 }
